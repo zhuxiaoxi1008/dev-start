@@ -150,15 +150,24 @@ app.delete('/api/categories/:id', async (c) => {
   }
 })
 
-// 7. 获取个性化设置
+// ==========================================
+// 👇 以下为改造后的设置接口（7、8号）
+// ==========================================
+
+// 7. 获取个性化设置（按 user_id 隔离）
 app.get('/api/settings', async (c) => {
   try {
     const supabase = getSupabase(c.env)
+    const user_id = c.req.query('user_id')
+
+    if (!user_id) {
+      return c.json({ success: false, error: 'user_id 参数必填' }, 400)
+    }
+
     const { data, error } = await supabase
       .from('user_settings')
       .select('*')
-      .is('user_id', null)
-      .limit(1)
+      .eq('user_id', user_id)
       .maybeSingle()
 
     if (error) {
@@ -171,49 +180,41 @@ app.get('/api/settings', async (c) => {
   }
 })
 
-// 8. 更新或创建个性化设置
+// 8. 更新或创建个性化设置（upsert + 渐变背景字段）
 app.put('/api/settings', async (c) => {
   try {
     const supabase = getSupabase(c.env)
     const body = await c.req.json()
+    const { user_id } = body
 
-    // 先查询是否已存在默认设置记录
-    const { data: existing } = await supabase
-      .from('user_settings')
-      .select('id')
-      .is('user_id', null)
-      .limit(1)
-      .maybeSingle()
+    if (!user_id) {
+      return c.json({ success: false, error: 'user_id 必填' }, 400)
+    }
 
     const payload = {
-      user_id: null,
-      wallpaper: body.wallpaper,
-      theme: body.theme || 'dark',
-      layout_config: body.layout_config || {},
+      user_id,
+      bg_type: body.bg_type ?? 'gradient',
+      bg_solid_color: body.bg_solid_color ?? '#0f172a',
+      bg_gradient: body.bg_gradient ?? '#1e1b4b,#020617',
+      bg_gradient_angle: body.bg_gradient_angle ?? 135,
+      wallpaper: body.wallpaper ?? null,
+      theme: body.theme ?? 'dark',
+      layout_config: body.layout_config ?? {},
       updated_at: new Date().toISOString(),
     }
 
-    let result
-    if (existing?.id) {
-      result = await supabase
-        .from('user_settings')
-        .update(payload)
-        .eq('id', existing.id)
-        .select()
-        .single()
-    } else {
-      result = await supabase
-        .from('user_settings')
-        .insert([payload])
-        .select()
-        .single()
+    // 基于 user_id 唯一约束做 upsert，存在则更新、不存在则插入
+    const { data, error } = await supabase
+      .from('user_settings')
+      .upsert(payload, { onConflict: 'user_id' })
+      .select()
+      .single()
+
+    if (error) {
+      return c.json({ success: false, error: error.message }, 400)
     }
 
-    if (result.error) {
-      return c.json({ success: false, error: result.error.message }, 400)
-    }
-
-    return c.json({ success: true, data: result.data })
+    return c.json({ success: true, data })
   } catch (err: any) {
     return c.json({ success: false, error: err.message }, 500)
   }

@@ -12,6 +12,9 @@ import {
   ExternalLink,
   Settings,
 } from 'lucide-react'
+import { useUserConfig } from './context/UserConfigContext'
+import { getBgStyle } from './utils/bg'
+import WallpaperSettingPanel from './components/WallpaperSettingPanel'
 
 // 搜索引擎配置
 const searchEngines = [
@@ -37,15 +40,10 @@ interface Category {
   bookmarks: Bookmark[]
 }
 
-// 预设暗色系壁纸背景
-const wallpaperPresets = [
-  { name: '深邃星云 (默认)', value: 'radial-gradient(ellipse at top, #1e1b4b, #020617)' },
-  { name: '极光翡翠', value: 'radial-gradient(ellipse at top, #064e3b, #020617)' },
-  { name: '暗夜绯红', value: 'radial-gradient(ellipse at top, #4c0519, #020617)' },
-  { name: '纯净黑曜石', value: 'linear-gradient(to bottom, #0f172a, #020617)' },
-]
-
 export default function App() {
+  const { settings, updateSettings, loading: configLoading } = useUserConfig()
+  const bgStyle = getBgStyle(settings)
+
   const [engine, setEngine] = useState(searchEngines[0])
   const [keyword, setKeyword] = useState('')
   const [categories, setCategories] = useState<Category[]>([])
@@ -67,52 +65,10 @@ export default function App() {
   })
 
   const [showSettingsModal, setShowSettingsModal] = useState(false)
-  const [settings, setSettings] = useState({
-    wallpaper: wallpaperPresets[0].value,
-    columns: 2,
-    showClock: true,
-  })
-
-  // 初始化时拉取云端设置
-  useEffect(() => {
-    fetch('/api/settings')
-      .then((res) => res.json())
-      .then((res) => {
-        if (res.success && res.data) {
-          setSettings({
-            wallpaper: res.data.wallpaper || wallpaperPresets[0].value,
-            columns: res.data.layout_config?.columns ?? 2,
-            showClock: res.data.layout_config?.showClock ?? true,
-          })
-        }
-      })
-      .catch(() => {})
-  }, [])
-
-  // 保存设置到 Supabase
-  const handleSaveSettings = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const res = await fetch('/api/settings', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        wallpaper: settings.wallpaper,
-        theme: 'dark',
-        layout_config: {
-          columns: settings.columns,
-          showClock: settings.showClock,
-        },
-      }),
-    })
-    const data = await res.json()
-    if (data.success) {
-      setShowSettingsModal(false)
-    }
-  }
 
   const searchInputRef = useRef<HTMLInputElement>(null)
 
-  // 1. 拉取后端数据
+  // 1. 拉取后端书签数据
   const fetchBookmarks = async () => {
     try {
       const res = await fetch('/api/bookmarks')
@@ -140,7 +96,7 @@ export default function App() {
     return () => clearInterval(timer)
   }, [])
 
-  // 3. 全局快捷键支持（按 `/` 或 `Cmd/Ctrl + K` 聚焦搜索框，按 `Esc` 关闭弹窗）
+  // 3. 全局快捷键
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
@@ -163,12 +119,11 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // 处理搜索提交
+  // 搜索提交
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = keyword.trim()
     if (!trimmed) return
-    // 如果输入的是完整网址，直接跳转
     if (/^https?:\/\//i.test(trimmed)) {
       window.open(trimmed, '_blank')
       return
@@ -267,34 +222,42 @@ export default function App() {
   })
 
   // 网格列数 class
-  const gridClass = settings.columns === 3
+  const gridClass = settings.layout_config.columns === 3
     ? 'grid grid-cols-1 md:grid-cols-3 gap-4'
     : 'grid grid-cols-1 md:grid-cols-2 gap-4'
+
+  if (configLoading) {
+    return (
+      <div className="min-h-screen w-full grid place-items-center text-slate-200 bg-slate-950">
+        加载中...
+      </div>
+    )
+  }
 
   return (
     <div
       className="min-h-screen text-slate-100 flex flex-col justify-between relative overflow-x-hidden"
-      style={{ backgroundImage: settings.wallpaper }}
+      style={bgStyle}
     >
       {/* 顶部状态栏 */}
       <header className="w-full max-w-6xl mx-auto p-6 flex justify-between items-center z-10">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/60 border border-slate-800/80 backdrop-blur-md text-xs text-indigo-400">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 border border-white/15 backdrop-blur-md text-xs text-indigo-300">
           <Sparkles className="w-3.5 h-3.5" />
           <span className="font-medium">DevStart</span>
         </div>
 
         <div className="flex items-center gap-2.5">
-          <span className="text-xs text-slate-400 font-mono hidden sm:inline-flex items-center gap-1.5 bg-slate-900/50 px-3 py-1.5 rounded-xl border border-slate-800/80">
+          <span className="text-xs text-slate-300 font-mono hidden sm:inline-flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15 backdrop-blur-md">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             {apiStatus}
           </span>
 
           <button
             onClick={() => setShowCategoryModal(true)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-md hover:bg-slate-800 transition text-xs text-slate-300"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/10 border border-white/15 backdrop-blur-md hover:bg-white/20 transition text-xs text-slate-200"
             title="新建分类"
           >
-            <FolderPlus className="w-3.5 h-3.5 text-indigo-400" />
+            <FolderPlus className="w-3.5 h-3.5 text-indigo-300" />
             <span className="hidden sm:inline">新建分类</span>
           </button>
 
@@ -310,7 +273,7 @@ export default function App() {
 
           <button
             onClick={() => setShowSettingsModal(true)}
-            className="p-2 rounded-xl border backdrop-blur-md transition bg-slate-900/60 border-slate-800/80 text-slate-300 hover:bg-slate-800"
+            className="p-2 rounded-xl border backdrop-blur-md transition bg-white/10 border-white/15 text-slate-200 hover:bg-white/20"
             title="设置面板"
           >
             <Settings className="w-4 h-4" />
@@ -321,7 +284,7 @@ export default function App() {
             className={`p-2 rounded-xl border backdrop-blur-md transition ${
               isEditMode
                 ? 'bg-amber-500/20 border-amber-500/50 text-amber-300'
-                : 'bg-slate-900/60 border-slate-800/80 text-slate-300 hover:bg-slate-800'
+                : 'bg-white/10 border-white/15 text-slate-200 hover:bg-white/20'
             }`}
             title={isEditMode ? '完成编辑' : '管理/删除'}
           >
@@ -333,19 +296,19 @@ export default function App() {
       {/* 主体交互区域 */}
       <main className="w-full max-w-5xl mx-auto px-4 flex flex-col items-center my-auto z-10 space-y-8 py-4">
         {/* 实时时钟与日期 */}
-        {settings.showClock && (
+        {settings.layout_config.showClock && (
           <div className="text-center space-y-1">
-            <div className="text-5xl sm:text-6xl font-extrabold tracking-tight text-white font-mono">
+            <div className="text-5xl sm:text-6xl font-extrabold tracking-tight text-white font-mono drop-shadow-lg">
               {timeString}
             </div>
-            <p className="text-slate-400 text-xs sm:text-sm tracking-wide">{dateString}</p>
+            <p className="text-slate-300 text-xs sm:text-sm tracking-wide drop-shadow">{dateString}</p>
           </div>
         )}
 
         {/* 聚合搜索框 */}
         <form onSubmit={handleSearch} className="w-full max-w-2xl relative group">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Search className="w-5 h-5 text-slate-400 group-focus-within:text-indigo-400 transition" />
+            <Search className="w-5 h-5 text-slate-300 group-focus-within:text-indigo-300 transition" />
           </div>
           <input
             ref={searchInputRef}
@@ -353,9 +316,9 @@ export default function App() {
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             placeholder={`使用 ${engine.name} 搜索，或按 / 键快速聚焦...`}
-            className="w-full pl-12 pr-36 py-4 bg-slate-900/70 border border-slate-800 rounded-2xl shadow-2xl backdrop-blur-xl text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition"
+            className="w-full pl-12 pr-36 py-4 bg-white/10 border border-white/15 rounded-2xl shadow-2xl backdrop-blur-xl text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400/50 focus:border-indigo-400 transition"
           />
-          <div className="absolute inset-y-1.5 right-1.5 flex items-center gap-1 bg-slate-950/60 px-2 rounded-xl border border-slate-800/60">
+          <div className="absolute inset-y-1.5 right-1.5 flex items-center gap-1 bg-slate-950/60 px-2 rounded-xl border border-white/10">
             {searchEngines.map((item) => (
               <button
                 key={item.name}
@@ -364,7 +327,7 @@ export default function App() {
                 className={`px-2 py-1.5 rounded-lg text-xs transition flex items-center gap-1 ${
                   engine.name === item.name
                     ? 'bg-indigo-600 text-white font-medium shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-white/10'
                 }`}
                 title={item.name}
               >
@@ -376,35 +339,35 @@ export default function App() {
 
         {/* 网址导航分类看板 */}
         <div className="w-full space-y-6 pt-2">
-          <div className="flex items-center justify-between border-b border-slate-800/60 pb-3">
-            <h2 className="text-xs font-semibold tracking-wider text-slate-400 uppercase flex items-center gap-2">
-              <Folder className="w-4 h-4 text-indigo-400" />
+          <div className="flex items-center justify-between border-b border-white/10 pb-3">
+            <h2 className="text-xs font-semibold tracking-wider text-slate-300 uppercase flex items-center gap-2">
+              <Folder className="w-4 h-4 text-indigo-300" />
               云端导航书签
             </h2>
             {isEditMode && (
-              <span className="text-xs text-amber-400 animate-pulse">
+              <span className="text-xs text-amber-300 animate-pulse">
                 编辑模式已开启：点击右上角图标可删除分类或书签
               </span>
             )}
           </div>
 
           {loading ? (
-            <div className="text-center py-12 text-slate-500 text-sm">正在加载云端书签数据...</div>
+            <div className="text-center py-12 text-slate-300 text-sm backdrop-blur-sm">正在加载云端书签数据...</div>
           ) : categories.length > 0 ? (
             <div className={gridClass}>
               {categories.map((cat) => (
                 <div
                   key={cat.id}
-                  className="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 backdrop-blur-md space-y-3 flex flex-col justify-between"
+                  className="bg-white/10 border border-white/15 rounded-2xl p-4 backdrop-blur-md space-y-3 flex flex-col justify-between"
                 >
                   <div className="flex items-center justify-between">
-                    <h3 className="text-xs font-semibold text-slate-300 tracking-wider uppercase">
+                    <h3 className="text-xs font-semibold text-slate-200 tracking-wider uppercase">
                       {cat.name}
                     </h3>
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => openAddBookmark(cat.id)}
-                        className="p-1 rounded-lg text-slate-500 hover:text-indigo-400 hover:bg-slate-800/60 transition"
+                        className="p-1 rounded-lg text-slate-300 hover:text-indigo-300 hover:bg-white/10 transition"
                         title="在此分类下添加网址"
                       >
                         <Plus className="w-3.5 h-3.5" />
@@ -412,7 +375,7 @@ export default function App() {
                       {isEditMode && (
                         <button
                           onClick={() => handleDeleteCategory(cat.id, cat.name)}
-                          className="p-1 rounded-lg text-rose-400 hover:bg-rose-500/20 transition"
+                          className="p-1 rounded-lg text-rose-300 hover:bg-rose-500/20 transition"
                           title="删除此分类"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -431,16 +394,16 @@ export default function App() {
                         onClick={(e) => {
                           if (isEditMode) e.preventDefault()
                         }}
-                        className="relative flex items-center gap-2.5 p-2.5 rounded-xl bg-slate-950/40 border border-slate-800/50 hover:bg-slate-800/60 hover:border-indigo-500/30 transition group"
+                        className="relative flex items-center gap-2.5 p-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/15 hover:border-indigo-400/30 transition group"
                       >
-                        <span className="text-base p-1.5 rounded-lg bg-slate-900 border border-slate-800 shrink-0">
+                        <span className="text-base p-1.5 rounded-lg bg-white/10 border border-white/10 shrink-0">
                           {bookmark.icon || '🔗'}
                         </span>
-                        <span className="text-xs text-slate-300 group-hover:text-indigo-300 transition truncate">
+                        <span className="text-xs text-slate-200 group-hover:text-indigo-200 transition truncate">
                           {bookmark.title}
                         </span>
                         {!isEditMode && (
-                          <ExternalLink className="w-3 h-3 text-slate-600 opacity-0 group-hover:opacity-100 transition ml-auto shrink-0" />
+                          <ExternalLink className="w-3 h-3 text-slate-400 opacity-0 group-hover:opacity-100 transition ml-auto shrink-0" />
                         )}
                         {isEditMode && (
                           <button
@@ -458,7 +421,7 @@ export default function App() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 text-slate-500 text-sm">
+            <div className="text-center py-12 text-slate-300 text-sm backdrop-blur-sm">
               暂无分类数据，点击右上角「新建分类」开始定制你的起始页。
             </div>
           )}
@@ -466,7 +429,7 @@ export default function App() {
       </main>
 
       {/* 底部版权 */}
-      <footer className="w-full max-w-6xl mx-auto p-6 text-center text-xs text-slate-600 z-10">
+      <footer className="w-full max-w-6xl mx-auto p-6 text-center text-xs text-slate-400 z-10 drop-shadow">
         DevStart Dashboard &copy; 2026 &bull; Powered by React, Hono & Cloudflare Workers
       </footer>
 
@@ -475,7 +438,7 @@ export default function App() {
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form
             onSubmit={handleCreateCategory}
-            className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl"
+            className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm p-6 space-y-4 shadow-2xl"
           >
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white">新建书签分类</h3>
@@ -494,7 +457,7 @@ export default function App() {
               value={newCategoryName}
               onChange={(e) => setNewCategoryName(e.target.value)}
               placeholder="例如：常用工具、技术博客"
-              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
+              className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
             />
             <div className="flex justify-end gap-2 pt-2">
               <button
@@ -520,7 +483,7 @@ export default function App() {
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form
             onSubmit={handleCreateBookmark}
-            className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
+            className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl"
           >
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white">添加网址书签</h3>
@@ -541,7 +504,7 @@ export default function App() {
                   onChange={(e) =>
                     setBookmarkForm({ ...bookmarkForm, category_id: e.target.value })
                   }
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
                 >
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
@@ -559,7 +522,7 @@ export default function App() {
                     value={bookmarkForm.icon}
                     onChange={(e) => setBookmarkForm({ ...bookmarkForm, icon: e.target.value })}
                     placeholder="🔗"
-                    className="w-full px-3 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-center text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-center text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
                 <div className="col-span-3">
@@ -571,7 +534,7 @@ export default function App() {
                     value={bookmarkForm.title}
                     onChange={(e) => setBookmarkForm({ ...bookmarkForm, title: e.target.value })}
                     placeholder="例如：GitHub"
-                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
+                    className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
                   />
                 </div>
               </div>
@@ -584,7 +547,7 @@ export default function App() {
                   value={bookmarkForm.url}
                   onChange={(e) => setBookmarkForm({ ...bookmarkForm, url: e.target.value })}
                   placeholder="https://github.com"
-                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-800 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
+                  className="w-full px-3.5 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-indigo-500"
                 />
               </div>
             </div>
@@ -608,12 +571,15 @@ export default function App() {
         </div>
       )}
 
-      {/* 弹窗3：设置面板 */}
+      {/* 弹窗 3：设置面板 */}
       {showSettingsModal && (
         <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
           <form
-            onSubmit={handleSaveSettings}
-            className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl"
+            onSubmit={(e) => {
+              e.preventDefault()
+              setShowSettingsModal(false)
+            }}
+            className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto"
           >
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold text-white">起始页设置</h3>
@@ -626,32 +592,10 @@ export default function App() {
               </button>
             </div>
 
-            <div>
-              <label className="block text-xs text-slate-400 mb-2">背景壁纸</label>
-              <div className="grid gap-2">
-                {wallpaperPresets.map((wp) => (
-                  <label
-                    key={wp.name}
-                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer transition ${
-                      settings.wallpaper === wp.value
-                        ? 'border-indigo-500 bg-indigo-900/20'
-                        : 'border-slate-800 hover:bg-slate-800/40'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="wallpaper"
-                      value={wp.value}
-                      checked={settings.wallpaper === wp.value}
-                      onChange={() => setSettings((s) => ({ ...s, wallpaper: wp.value }))}
-                      className="accent-indigo-500"
-                    />
-                    <span className="text-xs text-slate-200">{wp.name}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
+            {/* 壁纸设置面板 */}
+            <WallpaperSettingPanel />
 
+            {/* 分类卡片列数 */}
             <div>
               <label className="block text-xs text-slate-400 mb-2">分类卡片列数</label>
               <div className="flex gap-3">
@@ -659,9 +603,10 @@ export default function App() {
                   <input
                     type="radio"
                     name="columns"
-                    value={2}
-                    checked={settings.columns === 2}
-                    onChange={() => setSettings((s) => ({ ...s, columns: 2 }))}
+                    checked={settings.layout_config.columns === 2}
+                    onChange={() => updateSettings({
+                      layout_config: { ...settings.layout_config, columns: 2 }
+                    })}
                     className="accent-indigo-500"
                   />
                   <span className="text-xs text-slate-200">2 列</span>
@@ -670,9 +615,10 @@ export default function App() {
                   <input
                     type="radio"
                     name="columns"
-                    value={3}
-                    checked={settings.columns === 3}
-                    onChange={() => setSettings((s) => ({ ...s, columns: 3 }))}
+                    checked={settings.layout_config.columns === 3}
+                    onChange={() => updateSettings({
+                      layout_config: { ...settings.layout_config, columns: 3 }
+                    })}
                     className="accent-indigo-500"
                   />
                   <span className="text-xs text-slate-200">3 列</span>
@@ -680,12 +626,15 @@ export default function App() {
               </div>
             </div>
 
+            {/* 显示时钟 */}
             <div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={settings.showClock}
-                  onChange={(e) => setSettings((s) => ({ ...s, showClock: e.target.checked }))}
+                  checked={settings.layout_config.showClock}
+                  onChange={(e) => updateSettings({
+                    layout_config: { ...settings.layout_config, showClock: e.target.checked }
+                  })}
                   className="accent-indigo-500"
                 />
                 <span className="text-xs text-slate-200">显示时钟与日期</span>
@@ -698,13 +647,7 @@ export default function App() {
                 onClick={() => setShowSettingsModal(false)}
                 className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:bg-slate-800"
               >
-                取消
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 rounded-xl text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium"
-              >
-                保存设置
+                关闭
               </button>
             </div>
           </form>

@@ -58,5 +58,13 @@ grant select, insert, update, delete on user_settings to anon, authenticated;
 -- 4. 未来新建表的默认权限兜底（一劳永逸）
 -- ==========================================
 -- 确保后续在 public 模式下新建的任何表，默认都对 anon 和 authenticated 开放基础权限
-alter default privileges in schema public 
-grant select, insert, update, delete on tables to anon, authenticated;
+
+-- ==========================================
+-- 为现有 user_settings 表扩展渐变背景字段
+-- 无损升级：原有字段全部保留，旧数据自动填充默认值
+-- ==========================================
+alter table user_settings 
+add column if not exists bg_type text default 'gradient',
+add column if not exists bg_solid_color text default '#0f172a',
+add column if not exists bg_gradient text default '#1e1b4b,#020617',
+add column if not exists bg_gradient_angle int default 135;
