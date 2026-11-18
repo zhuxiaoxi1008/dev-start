@@ -132,4 +132,22 @@ app.delete('/api/bookmarks/:id', async (c) => {
   }
 })
 
+// 6. 删除分类（级联删除该分类下的所有书签）
+app.delete('/api/categories/:id', async (c) => {
+  try {
+    const supabase = getSupabase(c.env)
+    const id = c.req.param('id')
+
+    const { error } = await supabase.from('categories').delete().eq('id', id)
+
+    if (error) {
+      return c.json({ success: false, error: error.message }, 400)
+    }
+
+    return c.json({ success: true })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
 export default app
