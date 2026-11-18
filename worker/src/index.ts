@@ -150,4 +150,73 @@ app.delete('/api/categories/:id', async (c) => {
   }
 })
 
+// 7. 获取个性化设置
+app.get('/api/settings', async (c) => {
+  try {
+    const supabase = getSupabase(c.env)
+    const { data, error } = await supabase
+      .from('user_settings')
+      .select('*')
+      .is('user_id', null)
+      .limit(1)
+      .maybeSingle()
+
+    if (error) {
+      return c.json({ success: false, error: error.message }, 400)
+    }
+
+    return c.json({ success: true, data })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
+// 8. 更新或创建个性化设置
+app.put('/api/settings', async (c) => {
+  try {
+    const supabase = getSupabase(c.env)
+    const body = await c.req.json()
+
+    // 先查询是否已存在默认设置记录
+    const { data: existing } = await supabase
+      .from('user_settings')
+      .select('id')
+      .is('user_id', null)
+      .limit(1)
+      .maybeSingle()
+
+    const payload = {
+      user_id: null,
+      wallpaper: body.wallpaper,
+      theme: body.theme || 'dark',
+      layout_config: body.layout_config || {},
+      updated_at: new Date().toISOString(),
+    }
+
+    let result
+    if (existing?.id) {
+      result = await supabase
+        .from('user_settings')
+        .update(payload)
+        .eq('id', existing.id)
+        .select()
+        .single()
+    } else {
+      result = await supabase
+        .from('user_settings')
+        .insert([payload])
+        .select()
+        .single()
+    }
+
+    if (result.error) {
+      return c.json({ success: false, error: result.error.message }, 400)
+    }
+
+    return c.json({ success: true, data: result.data })
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500)
+  }
+})
+
 export default app

@@ -10,6 +10,7 @@ import {
   X,
   FolderPlus,
   ExternalLink,
+  Settings,
 } from 'lucide-react'
 
 // 搜索引擎配置
@@ -36,6 +37,14 @@ interface Category {
   bookmarks: Bookmark[]
 }
 
+// 预设暗色系壁纸背景
+const wallpaperPresets = [
+  { name: '深邃星云 (默认)', value: 'radial-gradient(ellipse at top, #1e1b4b, #020617)' },
+  { name: '极光翡翠', value: 'radial-gradient(ellipse at top, #064e3b, #020617)' },
+  { name: '暗夜绯红', value: 'radial-gradient(ellipse at top, #4c0519, #020617)' },
+  { name: '纯净黑曜石', value: 'linear-gradient(to bottom, #0f172a, #020617)' },
+]
+
 export default function App() {
   const [engine, setEngine] = useState(searchEngines[0])
   const [keyword, setKeyword] = useState('')
@@ -56,6 +65,50 @@ export default function App() {
     url: '',
     icon: '🔗',
   })
+
+  const [showSettingsModal, setShowSettingsModal] = useState(false)
+  const [settings, setSettings] = useState({
+    wallpaper: wallpaperPresets[0].value,
+    columns: 2,
+    showClock: true,
+  })
+
+  // 初始化时拉取云端设置
+  useEffect(() => {
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((res) => {
+        if (res.success && res.data) {
+          setSettings({
+            wallpaper: res.data.wallpaper || wallpaperPresets[0].value,
+            columns: res.data.layout_config?.columns ?? 2,
+            showClock: res.data.layout_config?.showClock ?? true,
+          })
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  // 保存设置到 Supabase
+  const handleSaveSettings = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const res = await fetch('/api/settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        wallpaper: settings.wallpaper,
+        theme: 'dark',
+        layout_config: {
+          columns: settings.columns,
+          showClock: settings.showClock,
+        },
+      }),
+    })
+    const data = await res.json()
+    if (data.success) {
+      setShowSettingsModal(false)
+    }
+  }
 
   const searchInputRef = useRef<HTMLInputElement>(null)
 
@@ -103,6 +156,7 @@ export default function App() {
       } else if (e.key === 'Escape') {
         setShowCategoryModal(false)
         setShowBookmarkModal(false)
+        setShowSettingsModal(false)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -212,8 +266,16 @@ export default function App() {
     weekday: 'long',
   })
 
+  // 网格列数 class
+  const gridClass = settings.columns === 3
+    ? 'grid grid-cols-1 md:grid-cols-3 gap-4'
+    : 'grid grid-cols-1 md:grid-cols-2 gap-4'
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between relative overflow-x-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-950/40 via-slate-950 to-slate-950">
+    <div
+      className="min-h-screen text-slate-100 flex flex-col justify-between relative overflow-x-hidden"
+      style={{ backgroundImage: settings.wallpaper }}
+    >
       {/* 顶部状态栏 */}
       <header className="w-full max-w-6xl mx-auto p-6 flex justify-between items-center z-10">
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900/60 border border-slate-800/80 backdrop-blur-md text-xs text-indigo-400">
@@ -247,6 +309,14 @@ export default function App() {
           </button>
 
           <button
+            onClick={() => setShowSettingsModal(true)}
+            className="p-2 rounded-xl border backdrop-blur-md transition bg-slate-900/60 border-slate-800/80 text-slate-300 hover:bg-slate-800"
+            title="设置面板"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+
+          <button
             onClick={() => setIsEditMode(!isEditMode)}
             className={`p-2 rounded-xl border backdrop-blur-md transition ${
               isEditMode
@@ -263,12 +333,14 @@ export default function App() {
       {/* 主体交互区域 */}
       <main className="w-full max-w-5xl mx-auto px-4 flex flex-col items-center my-auto z-10 space-y-8 py-4">
         {/* 实时时钟与日期 */}
-        <div className="text-center space-y-1">
-          <div className="text-5xl sm:text-6xl font-extrabold tracking-tight text-white font-mono">
-            {timeString}
+        {settings.showClock && (
+          <div className="text-center space-y-1">
+            <div className="text-5xl sm:text-6xl font-extrabold tracking-tight text-white font-mono">
+              {timeString}
+            </div>
+            <p className="text-slate-400 text-xs sm:text-sm tracking-wide">{dateString}</p>
           </div>
-          <p className="text-slate-400 text-xs sm:text-sm tracking-wide">{dateString}</p>
-        </div>
+        )}
 
         {/* 聚合搜索框 */}
         <form onSubmit={handleSearch} className="w-full max-w-2xl relative group">
@@ -319,7 +391,7 @@ export default function App() {
           {loading ? (
             <div className="text-center py-12 text-slate-500 text-sm">正在加载云端书签数据...</div>
           ) : categories.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className={gridClass}>
               {categories.map((cat) => (
                 <div
                   key={cat.id}
@@ -530,6 +602,109 @@ export default function App() {
                 className="px-4 py-2 rounded-xl text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium"
               >
                 保存书签
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* 弹窗3：设置面板 */}
+      {showSettingsModal && (
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <form
+            onSubmit={handleSaveSettings}
+            className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-white">起始页设置</h3>
+              <button
+                type="button"
+                onClick={() => setShowSettingsModal(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div>
+              <label className="block text-xs text-slate-400 mb-2">背景壁纸</label>
+              <div className="grid gap-2">
+                {wallpaperPresets.map((wp) => (
+                  <label
+                    key={wp.name}
+                    className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border cursor-pointer transition ${
+                      settings.wallpaper === wp.value
+                        ? 'border-indigo-500 bg-indigo-900/20'
+                        : 'border-slate-800 hover:bg-slate-800/40'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="wallpaper"
+                      value={wp.value}
+                      checked={settings.wallpaper === wp.value}
+                      onChange={() => setSettings((s) => ({ ...s, wallpaper: wp.value }))}
+                      className="accent-indigo-500"
+                    />
+                    <span className="text-xs text-slate-200">{wp.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs text-slate-400 mb-2">分类卡片列数</label>
+              <div className="flex gap-3">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="columns"
+                    value={2}
+                    checked={settings.columns === 2}
+                    onChange={() => setSettings((s) => ({ ...s, columns: 2 }))}
+                    className="accent-indigo-500"
+                  />
+                  <span className="text-xs text-slate-200">2 列</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="columns"
+                    value={3}
+                    checked={settings.columns === 3}
+                    onChange={() => setSettings((s) => ({ ...s, columns: 3 }))}
+                    className="accent-indigo-500"
+                  />
+                  <span className="text-xs text-slate-200">3 列</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={settings.showClock}
+                  onChange={(e) => setSettings((s) => ({ ...s, showClock: e.target.checked }))}
+                  className="accent-indigo-500"
+                />
+                <span className="text-xs text-slate-200">显示时钟与日期</span>
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowSettingsModal(false)}
+                className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:bg-slate-800"
+              >
+                取消
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-xl text-xs bg-indigo-600 hover:bg-indigo-500 text-white font-medium"
+              >
+                保存设置
               </button>
             </div>
           </form>
