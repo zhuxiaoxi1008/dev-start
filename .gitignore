@@ -1,0 +1,27 @@
+# =========================
+# Monorepo 依赖与构建产物忽略
+# =========================
+
+# 忽略根目录及所有子目录下的 node_modules
+node_modules/
+**/node_modules/
+
+# 前端构建产物 (Vite / React)
+client/dist/
+client/.vite/
+client/dist-ssr/
+
+# 后端 Cloudflare Workers 临时文件与 wrangler 缓存
+worker/.wrangler/
+worker/dist/
+
+# 环境变量及敏感密钥文件 (防止泄露 Supabase Key 等)
+.env
+.env.local
+.env.*.local
+
+# 系统及编辑器生成的缓存文件
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

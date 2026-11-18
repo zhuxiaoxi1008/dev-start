@@ -1,0 +1,17 @@
+{
+  "name": "dev-start-worker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev src/index.ts",
+    "deploy": "wrangler deploy src/index.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.48.0",
+    "hono": "^4.6.12"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0",
+    "wrangler": "^4.160.0"
+  }
+}
