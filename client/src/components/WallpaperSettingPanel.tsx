@@ -1,146 +1,116 @@
-import { useState } from 'react'
-import { useUserConfig } from '../context/UserConfigContext'
-import { imageWallpaperPresets, gradientPresets, solidPresets } from '../utils/bg'
+import { useConfig } from '../context/UserConfigContext'
+import { Check } from 'lucide-react'
+import type { UserSettingsPatch } from '../types/userConfig'
 
-export default function WallpaperSettingPanel() {
-  const { settings, updateSettings } = useUserConfig()
-  const [activeTab, setActiveTab] = useState<'image' | 'gradient' | 'solid'>(
-    settings.bg_type as 'image' | 'gradient' | 'solid'
-  )
+const bgTypeList = [
+  { label: '渐变背景', value: 'gradient' },
+  { label: '纯色背景', value: 'solid' },
+  { label: '壁纸A', value: 'wallpaperA' },
+  { label: '壁纸B', value: 'wallpaperB' },
+]
 
-  // 切换 Tab 同时更新背景类型
-  const handleTabChange = (tab: 'image' | 'gradient' | 'solid') => {
-    setActiveTab(tab)
-    if (tab === 'image' && !settings.wallpaper) {
-      // 首次切到图片壁纸，自动选中第一张
-      updateSettings({
-        bg_type: 'image',
-        wallpaper: imageWallpaperPresets[0].url
-      })
-    } else {
-      updateSettings({ bg_type: tab })
-    }
+export function WallpaperSettingPanel() {
+  const { settings, updateSettings } = useConfig()
+  if (!settings) return null
+
+  const handleChangeBgType = (v: string) => {
+    updateSettings({ bg_type: v as UserSettingsPatch['bg_type'] })
+  }
+
+  const handleGradientChange = (val: string) => {
+    updateSettings({ bg_gradient: val })
+  }
+  const handleAngleChange = (val: number) => {
+    updateSettings({ bg_gradient_angle: val })
+  }
+  const handleSolidColor = (val: string) => {
+    updateSettings({ bg_solid_color: val })
+  }
+  const handleWallpaperA = (url: string) => {
+    updateSettings({ wallpaper: url })
+  }
+  const handleWallpaperB = (url: string) => {
+    updateSettings({ layout_config: { ...settings.layout_config, wallpaperB: url } })
   }
 
   return (
-    <div className="space-y-4">
-      <p className="text-sm font-medium text-white">壁纸设置</p>
-
-      {/* 分类 Tab */}
-      <div className="flex gap-1 bg-slate-800/50 p-1 rounded-lg">
-        {[
-          { key: 'image', label: '图片壁纸' },
-          { key: 'gradient', label: '渐变壁纸' },
-          { key: 'solid', label: '纯色壁纸' },
-        ].map((tab) => (
-          <button
-            key={tab.key}
-            type="button"
-            onClick={() => handleTabChange(tab.key as 'image' | 'gradient' | 'solid')}
-            className={`flex-1 py-1.5 rounded-md text-xs transition ${
-              activeTab === tab.key
-                ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-slate-400 hover:text-slate-200'
-            }`}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      {/* 图片壁纸预设 */}
-      {activeTab === 'image' && (
+    <div className="space-y-6">
+      <div>
+        <div className="text-sm font-medium mb-3">背景类型</div>
         <div className="grid grid-cols-2 gap-2">
-          {imageWallpaperPresets.map((item) => (
+          {bgTypeList.map(item => (
             <button
-              key={item.url}
-              type="button"
-              onClick={() => updateSettings({ bg_type: 'image', wallpaper: item.url })}
-              className={`relative h-20 rounded-lg overflow-hidden border transition hover:scale-[1.02] ${
-                settings.bg_type === 'image' && settings.wallpaper === item.url
-                  ? 'border-indigo-400 ring-2 ring-indigo-400/50'
-                  : 'border-slate-700'
+              key={item.value}
+              onClick={() => handleChangeBgType(item.value)}
+              className={`border rounded-lg px-3 py-2 flex items-center justify-between ${
+                settings.bg_type === item.value ? 'border-blue-500 bg-blue-50' : ''
               }`}
             >
-              <img
-                src={item.url}
-                alt={item.name}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
-              <span className="absolute bottom-0 left-0 right-0 bg-black/50 text-white text-[10px] px-2 py-0.5 truncate">
-                {item.name}
-              </span>
+              {item.label}
+              {settings.bg_type === item.value && <Check size={16} />}
             </button>
           ))}
         </div>
-      )}
+      </div>
 
-      {/* 渐变壁纸预设 */}
-      {activeTab === 'gradient' && (
-        <>
-          <div className="grid grid-cols-4 gap-2">
-            {gradientPresets.map((wp) => (
-              <button
-                key={wp.name}
-                type="button"
-                onClick={() => updateSettings({
-                  bg_type: 'gradient',
-                  bg_gradient: wp.value,
-                  bg_gradient_angle: wp.angle
-                })}
-                className={`h-14 rounded-lg border text-[10px] text-white drop-shadow transition hover:scale-[1.02] ${
-                  settings.bg_type === 'gradient' && settings.bg_gradient === wp.value
-                    ? 'border-indigo-400 ring-2 ring-indigo-400/50'
-                    : 'border-slate-700'
-                }`}
-                style={{ background: `linear-gradient(${wp.angle}deg, ${wp.value})` }}
-              >
-                {wp.name}
-              </button>
-            ))}
+      {settings.bg_type === 'gradient' && (
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm">渐变色值（逗号分隔）</label>
+            <input
+              className="w-full border rounded px-2 py-1 mt-1"
+              value={settings.bg_gradient}
+              onChange={(e) => handleGradientChange(e.target.value)}
+            />
           </div>
-
-          <div className="pt-1">
-            <label className="text-xs text-slate-400">
-              渐变角度：{settings.bg_gradient_angle}°
-            </label>
+          <div>
+            <label className="text-sm">渐变角度 {settings.bg_gradient_angle}°</label>
             <input
               type="range"
               min="0"
               max="360"
               value={settings.bg_gradient_angle}
-              onChange={(e) => updateSettings({ bg_gradient_angle: Number(e.target.value) })}
-              className="w-full accent-indigo-500"
+              onChange={(e) => handleAngleChange(Number(e.target.value))}
+              className="w-full"
             />
           </div>
-        </>
-      )}
-
-      {/* 纯色壁纸预设 */}
-      {activeTab === 'solid' && (
-        <div className="grid grid-cols-6 gap-2">
-          {solidPresets.map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              onClick={() => updateSettings({ bg_type: 'solid', bg_solid_color: item.value })}
-              className={`h-10 rounded-lg border transition hover:scale-105 ${
-                settings.bg_type === 'solid' && settings.bg_solid_color === item.value
-                  ? 'border-indigo-400 ring-2 ring-indigo-400/50'
-                  : 'border-slate-700'
-              }`}
-              style={{ backgroundColor: item.value }}
-              title={item.name}
-            />
-          ))}
         </div>
       )}
 
-      {/* 自定义壁纸预留提示 */}
-      <div className="pt-2 border-t border-slate-800">
-        <p className="text-xs text-slate-500">后续支持自定义上传本地图片壁纸</p>
-      </div>
+      {settings.bg_type === 'solid' && (
+        <div>
+          <label className="text-sm">纯色</label>
+          <input
+            type="color"
+            value={settings.bg_solid_color}
+            onChange={(e) => handleSolidColor(e.target.value)}
+            className="mt-1"
+          />
+        </div>
+      )}
+
+      {(settings.bg_type === 'wallpaperA' || settings.bg_type === 'wallpaperB') && (
+        <div className="space-y-4">
+          <div>
+            <label className="text-sm">壁纸A 链接</label>
+            <input
+              className="w-full border rounded px-2 py-1 mt-1"
+              value={settings.wallpaper}
+              onChange={(e) => handleWallpaperA(e.target.value)}
+              placeholder="https://xxx.jpg"
+            />
+          </div>
+          <div>
+            <label className="text-sm">壁纸B 链接</label>
+            <input
+              className="w-full border rounded px-2 py-1 mt-1"
+              value={settings.layout_config.wallpaperB}
+              onChange={(e) => handleWallpaperB(e.target.value)}
+              placeholder="https://xxx.jpg"
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
