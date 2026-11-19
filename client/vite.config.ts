@@ -10,6 +10,7 @@ export default defineConfig({
         target: 'http://localhost:8787', // 本地联调时将 /api 代理到 Hono 后端
         changeOrigin: true
       }
-    }
+    },
+    open: true,
   }
 })

@@ -16,7 +16,6 @@ import { useUserConfig } from './context/UserConfigContext'
 import { getBgStyle } from './utils/bg'
 import WallpaperSettingPanel from './components/WallpaperSettingPanel'
 
-// 搜索引擎配置
 const searchEngines = [
   { name: 'Google', icon: '🌐', url: 'https://www.google.com/search?q=' },
   { name: '百度', icon: '🐾', url: 'https://www.baidu.com/s?wd=' },
@@ -214,17 +213,17 @@ export default function App() {
     }
   }
 
-  const timeString = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+  const timeString = now.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
   const dateString = now.toLocaleDateString('zh-CN', {
     month: 'long',
     day: 'numeric',
     weekday: 'long',
   })
 
-  // 网格列数 class
-  const gridClass = settings.layout_config.columns === 3
-    ? 'grid grid-cols-1 md:grid-cols-3 gap-4'
-    : 'grid grid-cols-1 md:grid-cols-2 gap-4'
+  const gridClass =
+    settings.layout_config.columns === 3
+      ? 'grid grid-cols-1 md:grid-cols-3 gap-4'
+      : 'grid grid-cols-1 md:grid-cols-2 gap-4'
 
   if (configLoading) {
     return (
@@ -247,7 +246,7 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2.5">
-          <span className="text-xs text-slate-300 font-mono hidden sm:inline-flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15 backdrop-blur-md">
+          <span className="text-xs text-slate-300 hidden sm:inline-flex items-center gap-1.5 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15 backdrop-blur-md">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             {apiStatus}
           </span>
@@ -298,7 +297,7 @@ export default function App() {
         {/* 实时时钟与日期 */}
         {settings.layout_config.showClock && (
           <div className="text-center space-y-1">
-            <div className="text-5xl sm:text-6xl font-extrabold tracking-tight text-white font-mono drop-shadow-lg">
+            <div className="text-6xl sm:text-6xl font-medium tracking-tight text-white drop-shadow-lg tabular-nums">
               {timeString}
             </div>
             <p className="text-slate-300 text-xs sm:text-sm tracking-wide drop-shadow">{dateString}</p>
@@ -352,7 +351,9 @@ export default function App() {
           </div>
 
           {loading ? (
-            <div className="text-center py-12 text-slate-300 text-sm backdrop-blur-sm">正在加载云端书签数据...</div>
+            <div className="text-center py-12 text-slate-300 text-sm backdrop-blur-sm">
+              正在加载云端书签数据...
+            </div>
           ) : categories.length > 0 ? (
             <div className={gridClass}>
               {categories.map((cat) => (
@@ -592,10 +593,8 @@ export default function App() {
               </button>
             </div>
 
-            {/* 壁纸设置面板 */}
             <WallpaperSettingPanel />
 
-            {/* 分类卡片列数 */}
             <div>
               <label className="block text-xs text-slate-400 mb-2">分类卡片列数</label>
               <div className="flex gap-3">
@@ -604,9 +603,11 @@ export default function App() {
                     type="radio"
                     name="columns"
                     checked={settings.layout_config.columns === 2}
-                    onChange={() => updateSettings({
-                      layout_config: { ...settings.layout_config, columns: 2 }
-                    })}
+                    onChange={() =>
+                      updateSettings({
+                        layout_config: { ...settings.layout_config, columns: 2 },
+                      })
+                    }
                     className="accent-indigo-500"
                   />
                   <span className="text-xs text-slate-200">2 列</span>
@@ -616,9 +617,11 @@ export default function App() {
                     type="radio"
                     name="columns"
                     checked={settings.layout_config.columns === 3}
-                    onChange={() => updateSettings({
-                      layout_config: { ...settings.layout_config, columns: 3 }
-                    })}
+                    onChange={() =>
+                      updateSettings({
+                        layout_config: { ...settings.layout_config, columns: 3 },
+                      })
+                    }
                     className="accent-indigo-500"
                   />
                   <span className="text-xs text-slate-200">3 列</span>
@@ -626,15 +629,16 @@ export default function App() {
               </div>
             </div>
 
-            {/* 显示时钟 */}
             <div>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={settings.layout_config.showClock}
-                  onChange={(e) => updateSettings({
-                    layout_config: { ...settings.layout_config, showClock: e.target.checked }
-                  })}
+                  onChange={(e) =>
+                    updateSettings({
+                      layout_config: { ...settings.layout_config, showClock: e.target.checked },
+                    })
+                  }
                   className="accent-indigo-500"
                 />
                 <span className="text-xs text-slate-200">显示时钟与日期</span>
