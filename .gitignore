@@ -13,6 +13,7 @@ client/dist-ssr/
 
 # 后端 Cloudflare Workers 临时文件与 wrangler 缓存
 worker/.wrangler/
+worker/.pnpm-store/
 worker/dist/
 
 # 环境变量及敏感密钥文件 (防止泄露 Supabase Key 等)
@@ -25,3 +26,6 @@ worker/dist/
 Thumbs.db
 .vscode/
 .idea/
+
+.env.local
+.env.*.local

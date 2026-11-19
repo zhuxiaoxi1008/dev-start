@@ -1,13 +1,20 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
+import path from "path"
+import react from "@vitejs/plugin-react"
+import tailwindcss from "@tailwindcss/postcss"
+import { defineConfig } from "vite"
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: {
+      "@": path.resolve(import.meta.dirname, "./src"),
+    }
+  },
   server: {
     port: 3000,
     proxy: {
       '/api': {
-        target: 'http://localhost:8787', // 本地联调时将 /api 代理到 Hono 后端
+        target: 'http://localhost:8787',
         changeOrigin: true
       }
     },

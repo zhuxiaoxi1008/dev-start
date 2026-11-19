@@ -103,3 +103,12 @@ where not exists (select 1 from setting_template);
 alter table setting_template disable row level security;
 grant select on setting_template to anon, authenticated;
 
+
+alter table user_settings add column if not exists dark_mode boolean default false;
+alter table user_settings add column if not exists bg_type text default 'gradient';
+alter table user_settings add column if not exists bg_gradient text default '#e0f7fa,#f0f9ff';
+alter table user_settings add column if not exists bg_gradient_angle int default 135;
+alter table user_settings add column if not exists bg_solid_color text default '#ffffff';
+alter table user_settings add column if not exists wallpaper text default '';
+alter table user_settings add column if not exists layout_config jsonb default '{"wallpaperB":""}'::jsonb;
+
