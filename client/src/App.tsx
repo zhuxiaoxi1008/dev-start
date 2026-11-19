@@ -8,11 +8,12 @@ import { QuickBookmarkBar } from '@/components/QuickBookmarkBar'
 import { SettingModal } from '@/components/SettingModal'
 
 const searchEngines = [
-  { name: 'Google', icon: '🌐', url: 'https://www.google.com/search?q=' },
-  { name: '百度', icon: '🐾', url: 'https://www.baidu.com/s?wd=' },
-  { name: 'GitHub', icon: '🐙', url: 'https://github.com/search?q=' },
-  { name: 'DeepSeek', icon: '🤖', url: 'https://chat.deepseek.com/search?q=' },
+  { name: 'Google', icon: 'https://www.google.com/favicon.ico', url: 'https://www.google.com/search?q=' },
+  { name: '百度', icon: 'https://www.baidu.com/favicon.ico', url: 'https://www.baidu.com/s?wd=' },
+  { name: 'GitHub', icon: 'https://github.com/favicon.ico', url: 'https://github.com/search?q=' },
+  { name: 'DeepSeek', icon: 'https://chat.deepseek.com/favicon.ico', url: 'https://chat.deepseek.com/search?q=' },
 ]
+
 
 interface EngineItem {
   name: string
@@ -21,10 +22,11 @@ interface EngineItem {
 }
 
 const defaultBookmarks = [
-  { id: '1', name: 'GitHub', url: 'https://github.com', icon: Github },
-  { id: '2', name: 'Vite', url: 'https://vitejs.dev', icon: Zap },
-  { id: '3', name: 'Supabase', url: 'https://supabase.com', icon: Database },
+  { id: '1', name: 'GitHub', url: 'https://github.com', icon: 'https://github.com/favicon.ico' },
+  { id: '2', name: 'Vite', url: 'https://vitejs.dev', icon: 'https://vitejs.dev/logo.svg' },
+  { id: '3', name: 'Supabase', url: 'https://supabase.com', icon: 'https://supabase.com/favicon.ico' },
 ]
+
 
 function HomePage() {
   const { loading, settings } = useConfig()

@@ -1,23 +1,18 @@
-import { Search, Settings, ChevronDown } from "lucide-react";
-import { useState, KeyboardEvent } from "react";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { Search, ChevronDown, Settings } from "lucide-react";
 
-export type EngineItem = {
-  id: string;
+export interface SearchEngine {
   name: string;
   icon: string;
   url: string;
-  placeholder: string;
-};
+}
 
 interface SearchBarProps {
-  engines: EngineItem[];
-  selectedEngine: EngineItem;
+  engines: SearchEngine[];
+  selectedEngine: SearchEngine;
   keyword: string;
-  onKeywordChange: (v: string) => void;
-  onSelectEngine: (engine: EngineItem) => void;
+  onChangeKeyword: (v: string) => void;
+  onChangeEngine: (v: SearchEngine) => void;
   onSearch: () => void;
   onOpenSetting: () => void;
 }
@@ -26,75 +21,100 @@ export function SearchBar({
   engines,
   selectedEngine,
   keyword,
-  onKeywordChange,
-  onSelectEngine,
+  onChangeKeyword,
+  onChangeEngine,
   onSearch,
   onOpenSetting,
 }: SearchBarProps) {
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") onSearch();
+  const [engineMenuOpen, setEngineMenuOpen] = useState(false);
+
+  const handlePickEngine = (engine: SearchEngine) => {
+    onChangeEngine(engine);
+    setEngineMenuOpen(false);
   };
 
   return (
-    <div className="w-full">
-      <div className="flex items-center gap-3 rounded-2xl border bg-card/60 backdrop-blur-lg p-3 shadow-sm transition-all hover:shadow-md">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="secondary" className="gap-2 h-10">
-              <img
-                src={selectedEngine.icon}
-                alt={selectedEngine.name}
-                className="w-4 h-4 object-contain"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src =
-                    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2364748b'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>";
-                }}
-              />
-              <span className="text-sm">{selectedEngine.name}</span>
-              <ChevronDown className="size-3.5 text-muted-foreground" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-4" align="start">
-            <div className="grid grid-cols-4 gap-2">
-              {engines.map((eng) => (
-                <Button
-                  key={eng.id}
-                  variant={eng.id === selectedEngine.id ? "default" : "ghost"}
-                  className="h-16 w-16 flex flex-col gap-1"
-                  onClick={() => onSelectEngine(eng)}
+    <div className="w-full max-w-2xl mx-auto mt-10">
+      <div className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/70 dark:bg-neutral-900/60 backdrop-blur-xl border border-white/60 dark:border-white/10 shadow-sm">
+        {/* 搜索引擎选择 */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setEngineMenuOpen((v) => !v)}
+            className="flex items-center gap-1 pr-2 pl-1 py-1 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+          >
+            <img
+              src={selectedEngine.icon}
+              alt={selectedEngine.name}
+              className="w-5 h-5 object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src =
+                  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E";
+              }}
+            />
+            <span className="text-sm text-foreground hidden sm:inline">
+              {selectedEngine.name}
+            </span>
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          </button>
+
+          {engineMenuOpen && (
+            <div className="absolute top-full left-0 mt-2 w-44 rounded-xl bg-white dark:bg-neutral-900 border border-white/60 dark:border-white/10 shadow-lg p-1 z-50">
+              {engines.map((engine) => (
+                <button
+                  key={engine.name}
+                  type="button"
+                  onClick={() => handlePickEngine(engine)}
+                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
                 >
                   <img
-                    src={eng.icon}
-                    alt={eng.name}
+                    src={engine.icon}
+                    alt={engine.name}
                     className="w-5 h-5 object-contain"
                     onError={(e) => {
                       (e.target as HTMLImageElement).src =
-                        "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2364748b'><path d='M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5'/></svg>";
+                        "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E";
                     }}
                   />
-                  <span className="text-xs">{eng.name}</span>
-                </Button>
+                  <span className="text-foreground">{engine.name}</span>
+                </button>
               ))}
             </div>
-          </PopoverContent>
-        </Popover>
-
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-          <input
-            className="h-10 w-full rounded-xl border bg-muted/50 pl-10 pr-4 text-sm outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring focus:border-ring transition-all"
-            value={keyword}
-            onChange={(e) => onKeywordChange(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={selectedEngine.placeholder}
-          />
+          )}
         </div>
 
-        <Button onClick={onSearch} className="h-10">搜索</Button>
+        <div className="w-px h-5 bg-border dark:bg-white/10" />
 
-        <Button variant="ghost" size="icon" onClick={onOpenSetting} className="h-10 w-10">
-          <Settings className="size-4" />
-        </Button>
+        {/* 输入框 */}
+        <input
+          type="text"
+          value={keyword}
+          onChange={(e) => onChangeKeyword(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onSearch();
+          }}
+          placeholder="搜索或输入网址"
+          className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground px-1 py-1"
+        />
+
+        {/* 设置按钮 */}
+        <button
+          type="button"
+          onClick={onOpenSetting}
+          className="p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
+          title="设置"
+        >
+          <Settings className="w-4 h-4" />
+        </button>
+
+        {/* 搜索按钮 */}
+        <button
+          type="button"
+          onClick={onSearch}
+          className="px-4 py-1.5 rounded-lg bg-foreground text-background text-sm font-medium hover:opacity-90 active:scale-[0.98] transition-all"
+        >
+          搜索
+        </button>
       </div>
     </div>
   );

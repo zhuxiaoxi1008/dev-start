@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 
 export function TimeDisplay() {
   const [now, setNow] = useState(new Date());
@@ -8,26 +8,40 @@ export function TimeDisplay() {
     return () => clearInterval(timer);
   }, []);
 
-  const timeStr = useMemo(() => {
-    const hh = String(now.getHours()).padStart(2, "0");
-    const mm = String(now.getMinutes()).padStart(2, "0");
-    return `${hh}:${mm}`;
-  }, [now]);
-
-  const dateStr = useMemo(() => {
-    return now.toLocaleDateString("zh-CN", {
-      month: "long",
-      day: "numeric",
-      weekday: "long",
-    });
-  }, [now]);
+  const hh = String(now.getHours()).padStart(2, "0");
+  const mm = String(now.getMinutes()).padStart(2, "0");
+  const ss = String(now.getSeconds()).padStart(2, "0");
+  const month = now.getMonth() + 1;
+  const day = now.getDate();
+  const weekArr = [
+    "星期日",
+    "星期一",
+    "星期二",
+    "星期三",
+    "星期四",
+    "星期五",
+    "星期六",
+  ];
+  const week = weekArr[now.getDay()];
 
   return (
-    <div className="pt-16 pb-10 text-center">
-      <div className="text-8xl font-light tracking-widest text-foreground">
-        {timeStr}
+    <div className="text-center my-6">
+      <div
+        className="text-6xl mxs:text-5xl tabular-nums text-white font-medium leading-[80px]"
+        style={{ textShadow: "0 2px 6px rgba(0,0,0,.16)" }}
+      >
+        {hh}:{mm}:{ss}
       </div>
-      <div className="mt-2 text-base text-muted-foreground">{dateStr}</div>
+      <div
+        className="mt-2 text-2xl"
+        style={{
+          color: "#ffffff",
+          opacity: 0.85,
+          textShadow: "0 1px 4px rgba(0,0,0,.12)",
+        }}
+      >
+        {month}月{day}日{week}
+      </div>
     </div>
   );
 }
