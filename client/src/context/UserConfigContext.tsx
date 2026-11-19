@@ -1,79 +1,57 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react"
-
-export type UserSettings = {
-  bg_type: "gradient" | "solid" | "wallpaperA" | "wallpaperB"
-  bg_gradient: string
-  bg_gradient_angle: number
-  bg_solid_color: string
-  wallpaper: string
-  layout_config: {
-    wallpaperB: string
-  }
-  dark_mode: boolean
-}
-
-export type UserSettingsPatch = Partial<UserSettings>
+// src/context/UserConfigContext.tsx
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react'
+import { useUserConfig } from '../hooks/useUserConfig'
+import type { UserSettings, UserSettingsPatch } from '../types/userConfig'
 
 const defaultSettings: UserSettings = {
-  bg_type: "gradient",
-  bg_gradient: "#e0f7fa,#f0f9ff",
-  bg_gradient_angle: 135,
-  bg_solid_color: "#ffffff",
-  wallpaper: "",
-  layout_config: {
-    wallpaperB: "",
-  },
   dark_mode: false,
+  bg_type: 'gradient',
+  wallpaper_a: '',
+  wallpaper_b: '',
+  solid_color: '#eef2ff',
+  gradient_color: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)',
 }
 
 interface ConfigContextType {
-  settings: UserSettings
   loading: boolean
-  updateSettings: (patch: UserSettingsPatch) => Promise<void>
+  settings: UserSettings
+  // 改成 patch 增量，只传要改的key
+  patchSetting: (patch: UserSettingsPatch) => Promise<void>
 }
 
 const UserConfigContext = createContext<ConfigContextType | undefined>(undefined)
 
-export function UserConfigProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<UserSettings>(defaultSettings)
+// 这里 userId 你后续登录逻辑传入；现在开发固定一个测试id也行
+export function UserConfigProvider({ children, userId }: { children: ReactNode, userId: string }) {
   const [loading, setLoading] = useState(true)
+  const [settings, setSettings] = useState<UserSettings>(defaultSettings)
+  const { getSettings, updateSettings } = useUserConfig(userId)
 
-  // vite代理 + 线上一体化部署，统一 /api
-  const API_BASE = "/api"
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/settings`)
-        if (res.ok) {
-          const data = await res.json()
-          setSettings({ ...defaultSettings, ...data })
-        }
-      } catch (err) {
-        console.warn("后端接口读取失败，使用本地默认配置", err)
-      } finally {
-        setLoading(false)
-      }
+  const loadSettings = useCallback(async () => {
+    setLoading(true)
+    try {
+      const remote = await getSettings()
+      setSettings({ ...defaultSettings, ...remote })
+    } catch (err) {
+      console.warn('加载用户配置失败，使用默认配置', err)
+    } finally {
+      setLoading(false)
     }
-    load()
-  }, [])
+  }, [getSettings])
 
-  const updateSettings = async (patch: UserSettingsPatch) => {
+  // 增量patch，只提交变更的字段，符合你后端 PATCH 接口
+  const patchSetting = useCallback(async (patch: UserSettingsPatch) => {
     const next = { ...settings, ...patch }
     setSettings(next)
-    try {
-      await fetch(`${API_BASE}/settings`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(patch),
-      })
-    } catch (err) {
-      console.warn("保存设置到后端失败", err)
-    }
-  }
+    await updateSettings(patch)
+  }, [settings, updateSettings])
+
+  useEffect(() => {
+    loadSettings()
+  }, [loadSettings])
 
   return (
-    <UserConfigContext.Provider value={{ settings, loading, updateSettings }}>
+    <UserConfigContext.Provider value={{ loading, settings, patchSetting }}>
       {children}
     </UserConfigContext.Provider>
   )
@@ -81,6 +59,6 @@ export function UserConfigProvider({ children }: { children: ReactNode }) {
 
 export const useConfig = () => {
   const ctx = useContext(UserConfigContext)
-  if (!ctx) throw new Error("useConfig 必须包裹在 UserConfigProvider 内")
+  if (!ctx) throw new Error('useConfig must be used inside UserConfigProvider')
   return ctx
 }

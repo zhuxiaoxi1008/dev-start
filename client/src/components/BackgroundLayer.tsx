@@ -1,39 +1,31 @@
-import { useConfig } from "@/context/UserConfigContext"
-import { cn } from "@/lib/utils"
+import { useConfig } from '@/context/UserConfigContext'
 
 export function BackgroundLayer() {
   const { settings } = useConfig()
+  const { bg_type, wallpaper_a, wallpaper_b, solid_color, gradient_color } = settings
 
-  let bgStyle: React.CSSProperties = {}
-
-  if (settings.bg_type === "gradient") {
-    const colors = settings.bg_gradient.split(",").map(s => s.trim()).join(",")
-    bgStyle = {
-      background: `linear-gradient(${settings.bg_gradient_angle}deg, ${colors})`,
-    }
-  } else if (settings.bg_type === "solid") {
-    bgStyle = { background: settings.bg_solid_color }
-  } else if (settings.bg_type === "wallpaperA" && settings.wallpaper) {
-    bgStyle = {
-      backgroundImage: `url(${settings.wallpaper})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-    }
-  } else if (settings.bg_type === "wallpaperB" && settings.layout_config.wallpaperB) {
-    bgStyle = {
-      backgroundImage: `url(${settings.layout_config.wallpaperB})`,
-      backgroundSize: "cover",
-      backgroundPosition: "center",
-    }
+  switch (bg_type) {
+    case 'gradient':
+      return <div className="fixed inset-0 -z-10" style={{ background: gradient_color }} />
+    case 'solid':
+      return <div className="fixed inset-0 -z-10" style={{ backgroundColor: solid_color }} />
+    case 'wallpaperA':
+      if (!wallpaper_a) return null
+      return (
+        <div
+          className="fixed inset-0 -z-10 bg-cover bg-center"
+          style={{ backgroundImage: `url(${wallpaper_a})` }}
+        />
+      )
+    case 'wallpaperB':
+      if (!wallpaper_b) return null
+      return (
+        <div
+          className="fixed inset-0 -z-10 bg-cover bg-center"
+          style={{ backgroundImage: `url(${wallpaper_b})` }}
+        />
+      )
+    default:
+      return null
   }
-
-  return (
-    <div
-      className={cn(
-        "fixed inset-0 -z-10 bg-transition",
-        settings.bg_type.startsWith("wallpaper") && "bg-black/40"
-      )}
-      style={bgStyle}
-    />
-  )
 }
