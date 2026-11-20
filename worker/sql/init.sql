@@ -112,3 +112,45 @@ alter table user_settings add column if not exists bg_solid_color text default '
 alter table user_settings add column if not exists wallpaper text default '';
 alter table user_settings add column if not exists layout_config jsonb default '{"wallpaperB":""}'::jsonb;
 
+-- 1. 给 bookmarks 表增加一个字段，用于区分组件类型（'link' 表示普通链接，'banner' 表示大卡片）
+alter table bookmarks add column if not exists widget_type text default 'link';
+-- 增加宽高配置，用于前端网格布局
+alter table bookmarks add column if not exists w int default 2;
+alter table bookmarks add column if not exists h int default 2;
+alter table bookmarks add column if not exists x int default 0;
+alter table bookmarks add column if not exists y int default 0;
+
+-- 2. 创建触发器函数：当有新的 user_settings 记录时（代表新用户初始化），插入默认书签
+create or replace function insert_default_bookmarks()
+returns trigger as $$
+begin
+  insert into bookmarks (user_id, title, url, icon, widget_type, w, h, x, y)
+  values 
+    (new.user_id, 'GitHub', 'https://github.com', 'https://cdn.simpleicons.org/github/181717', 'link', 2, 2, 0, 0),
+    (new.user_id, 'Vite', 'https://vitejs.dev', 'https://cdn.simpleicons.org/vite/646CFF', 'link', 2, 2, 2, 0),
+    (new.user_id, '图片格式转换', '', '', 'banner', 4, 2, 0, 2);
+  return new;
+end;
+$$ language plpgsql;
+
+-- 3. 绑定触发器（当插入用户设置时触发）
+drop trigger if exists trigger_insert_default_bookmarks on user_settings;
+create trigger trigger_insert_default_bookmarks
+after insert on user_settings
+for each row
+execute function insert_default_bookmarks();
+
+ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS dark_mode boolean DEFAULT false;
+ALTER TABLE user_settings ADD COLUMN IF NOT EXISTS sidebar_position text DEFAULT 'left';
+
+-- 1. 给 setting_template 增加 default_bookmarks 字段，用 JSON 存默认标签
+ALTER TABLE setting_template ADD COLUMN IF NOT EXISTS default_bookmarks jsonb DEFAULT '[]'::jsonb;
+
+-- 2. 更新默认模板（如果之前没插，这步相当于插入/覆盖）
+UPDATE setting_template 
+SET default_bookmarks = '[
+  {"title": "GitHub", "url": "https://github.com", "icon": "https://cdn.simpleicons.org/github/181717", "widget_type": "link", "w": 2, "h": 2, "x": 0, "y": 0},
+  {"title": "Vite", "url": "https://vitejs.dev", "icon": "https://cdn.simpleicons.org/vite/646CFF", "widget_type": "link", "w": 2, "h": 2, "x": 2, "y": 0},
+  {"title": "图片格式转换", "url": "", "icon": "", "widget_type": "banner", "w": 4, "h": 2, "x": 0, "y": 2}
+]'::jsonb
+WHERE id = (SELECT id FROM setting_template LIMIT 1);
