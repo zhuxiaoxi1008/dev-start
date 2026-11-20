@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card } from '@/components/ui/card'; 
+import { Card } from '@/components/ui/card';
 
 interface WidgetRendererProps {
   bookmark: {
@@ -8,20 +8,21 @@ interface WidgetRendererProps {
     url: string;
     icon: string;
     widget_type: 'link' | 'banner';
-    // 预留：后续支持设置卡片背景色
     bgColor?: string; 
   };
+  isDragging: boolean; // 接收拖拽标记
 }
 
-export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ bookmark }) => {
+export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ bookmark, isDragging }) => {
   
   const handleClick = () => {
+    // ✅ 如果刚刚拖拽过，直接return，不打开链接
+    if (isDragging) return
     if (bookmark.url) {
       window.open(bookmark.url, '_blank');
     }
   };
 
-  // 通用图标/链接渲染
   if (bookmark.widget_type === 'link' || !bookmark.widget_type) {
     return (
       <Card 
@@ -43,7 +44,6 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ bookmark }) => {
     );
   }
 
-  // 大卡片渲染 (banner)
   if (bookmark.widget_type === 'banner') {
     return (
       <Card 

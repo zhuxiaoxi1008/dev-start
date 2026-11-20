@@ -26,6 +26,8 @@ function HomePage() {
   
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
   const [bookmarksLoading, setBookmarksLoading] = useState(true)
+  // 👉 新增拖拽标记
+  const [isDragging, setIsDragging] = useState(false)
 
   const handleSearch = () => {
     const val = keyword.trim()
@@ -38,7 +40,6 @@ function HomePage() {
     else document.documentElement.classList.remove("dark")
   }, [settings.dark_mode])
 
-  // ========== 【这里是修改后的请求 useEffect，带 isMounted 保护】 ==========
   useEffect(() => {
     if (!settings.user_id) return;
 
@@ -66,9 +67,7 @@ function HomePage() {
       isMounted = false
     }
   }, [settings.user_id])
-  // ======================================================================
 
-  // 将后端数据转换为 react-grid-layout 需要的 Layout 格式
   const layouts = useMemo(() => {
     return bookmarks.map(bm => ({
       i: bm.id,
@@ -80,9 +79,7 @@ function HomePage() {
     }))
   }, [bookmarks])
 
-  // 拖拽结束后的保存逻辑
   const onLayoutChange = async (currentLayout: Layout[]) => {
-    // 1. 更新本地状态，避免视觉闪回
     const updatedBookmarks = bookmarks.map(bm => {
       const layoutItem = currentLayout.find(l => l.i === bm.id)
       if (layoutItem) {
@@ -92,7 +89,6 @@ function HomePage() {
     })
     setBookmarks(updatedBookmarks)
 
-    // 2. 异步发送到后端保存
     try {
       await fetch('/api/bookmarks/layout', {
         method: 'PATCH',
@@ -149,11 +145,18 @@ function HomePage() {
             margin={[16, 16]} 
             containerPadding={[0, 0]} 
             useCSSTransforms={true} 
-            transitionDuration={200} 
+            transitionDuration={200}
+            // 👉 拖拽事件
+            onDragStart={() => setIsDragging(true)}
+            onDragStop={() => {
+              // 延迟重置，等click事件跑完
+              setTimeout(() => setIsDragging(false), 50)
+            }}
           >
             {bookmarks.map((widget) => (
               <div key={widget.id} className="group relative cursor-grab active:cursor-grabbing">
-                <WidgetRenderer bookmark={widget} />
+                {/* 传给子组件 */}
+                <WidgetRenderer bookmark={widget} isDragging={isDragging} />
               </div>
             ))}
           </Responsive>
