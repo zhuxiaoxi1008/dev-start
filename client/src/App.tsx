@@ -212,8 +212,13 @@ function HomePage() {
             rowHeight={80}
             width={1152}
             onLayoutChange={onLayoutChange}
-            draggableCancel=".no-drag"
-            isBounded={true}
+            dragConfig={{
+              cancel: '.no-drag',
+              bounded: true,
+              // 触摸时保留浏览器滚动和 click 派生；8px 阈值区分手抖点按与拖拽
+              allowMobileScroll: true,
+              threshold: 8,
+            }}
             resizeConfig={{ enabled: false }}
             compactType="vertical" 
             preventCollision={false} 
