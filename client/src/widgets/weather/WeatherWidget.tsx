@@ -57,7 +57,7 @@ export const WeatherCard: React.FC<WidgetCardProps> = ({ config, isDragging, onO
 
   return (
     <div
-      className="relative w-full h-full rounded-xl overflow-hidden border border-white/20 bg-gradient-to-br from-sky-500/85 to-blue-700/85 backdrop-blur-sm shadow-sm cursor-pointer select-none text-white p-3 flex flex-col justify-between"
+      className="relative w-full h-full rounded-xl overflow-hidden border border-white/20 bg-gradient-to-br from-sky-500 to-blue-600 backdrop-blur-xl shadow-sm cursor-pointer select-none text-white p-3 flex flex-col justify-between"
       onClick={() => { if (!isDragging) onOpen() }}
     >
       <div className="flex items-center justify-between text-xs no-drag">
@@ -101,8 +101,8 @@ export const WeatherCard: React.FC<WidgetCardProps> = ({ config, isDragging, onO
 
 function DetailRow({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-lg bg-black/5 dark:bg-white/10 p-2 flex flex-col items-center gap-0.5">
-      <span className="opacity-60 flex items-center gap-1 text-[11px]">{icon}{label}</span>
+    <div className="rounded-lg bg-background/60 dark:bg-white/10 p-2 flex flex-col items-center gap-0.5">
+      <span className="text-muted-foreground flex items-center gap-1 text-[11px]">{icon}{label}</span>
       <span className="text-sm font-medium">{value}</span>
     </div>
   )
@@ -157,14 +157,14 @@ export const WeatherSettings: React.FC<WidgetSettingsProps> = ({ config, onSave,
 
       <div className="flex gap-2 mb-2">
         <input
-          className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-transparent px-3 py-2 text-sm"
+          className="flex-1 rounded-lg border border-input bg-background/60 px-3 py-2 text-sm placeholder:text-muted-foreground"
           placeholder="搜索城市，例如：西安"
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') doSearch() }}
         />
         <button
-          className="px-4 py-2 rounded-lg bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900 text-sm inline-flex items-center gap-1"
+          className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm inline-flex items-center gap-1 hover:bg-primary/80 disabled:opacity-50"
           onClick={doSearch}
           disabled={searching}
         >
@@ -172,14 +172,14 @@ export const WeatherSettings: React.FC<WidgetSettingsProps> = ({ config, onSave,
         </button>
       </div>
 
-      {searchError && <div className="text-xs text-red-500 mb-2">{searchError}</div>}
+      {searchError && <div className="text-xs text-destructive mb-2">{searchError}</div>}
 
       {cities.length > 0 && (
-        <div className="max-h-40 overflow-y-auto rounded-lg border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-100 dark:divide-zinc-800 mb-3">
+        <div className="max-h-40 overflow-y-auto rounded-lg border border-border divide-y divide-border mb-3">
           {cities.map(ct => (
             <button
               key={ct.id}
-              className="w-full text-left px-3 py-1.5 text-sm hover:bg-black/5 dark:hover:bg-white/10"
+              className="w-full text-left px-3 py-1.5 text-sm hover:bg-accent"
               onClick={() => {
                 setDraft({ city: ct.name, lat: ct.latitude, lon: ct.longitude })
                 setCities([])
@@ -187,7 +187,7 @@ export const WeatherSettings: React.FC<WidgetSettingsProps> = ({ config, onSave,
               }}
             >
               {ct.name}
-              <span className="text-xs opacity-60 ml-2">
+              <span className="text-xs text-muted-foreground ml-2">
                 {[ct.admin1, ct.country].filter(Boolean).join(' · ')}
               </span>
             </button>
@@ -195,7 +195,7 @@ export const WeatherSettings: React.FC<WidgetSettingsProps> = ({ config, onSave,
         </div>
       )}
 
-      <div className="rounded-xl bg-black/5 dark:bg-white/5 p-3 mb-3">
+      <div className="rounded-xl bg-muted p-3 mb-3">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium inline-flex items-center gap-1">
             <MapPin size={14} />{draft.city}
@@ -207,8 +207,8 @@ export const WeatherSettings: React.FC<WidgetSettingsProps> = ({ config, onSave,
           )}
         </div>
 
-        {loading && !data && <div className="text-xs opacity-60">加载中...</div>}
-        {!loading && !data && <div className="text-xs text-red-500">{error || '天气获取失败'}</div>}
+        {loading && !data && <div className="text-xs text-muted-foreground">加载中...</div>}
+        {!loading && !data && <div className="text-xs text-destructive">{error || '天气获取失败'}</div>}
 
         {detail && (
           <div className="grid grid-cols-3 gap-2 text-center">
@@ -223,7 +223,7 @@ export const WeatherSettings: React.FC<WidgetSettingsProps> = ({ config, onSave,
       </div>
 
       {data && (
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-700 divide-y divide-zinc-100 dark:divide-zinc-800 mb-3">
+        <div className="rounded-xl border border-border divide-y divide-border mb-3">
           {data.daily.time.map((d, i) => {
             const dayCode = hourlyCode(data, d, 13) ?? data.daily.weather_code[i]
             const nightCode = hourlyCode(data, d, 23) ?? data.daily.weather_code[i]
@@ -231,15 +231,15 @@ export const WeatherSettings: React.FC<WidgetSettingsProps> = ({ config, onSave,
             const NightIcon = wmoInfo(nightCode, false).Icon
             return (
               <div key={d} className="flex items-center justify-between px-3 py-1.5 text-sm">
-                <span className="w-16 text-xs opacity-70">{i === 0 ? '今天' : weekday(d)}</span>
+                <span className="w-16 text-xs text-muted-foreground">{i === 0 ? '今天' : weekday(d)}</span>
                 <span className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1 w-24">
                     <DayIcon size={15} />
                     <span className="text-xs">{wmoInfo(dayCode, true).label}</span>
                   </span>
                   <span className="inline-flex items-center gap-1 w-24">
-                    <NightIcon size={15} className="opacity-70" />
-                    <span className="text-xs opacity-80">{wmoInfo(nightCode, false).label}</span>
+                    <NightIcon size={15} className="text-muted-foreground" />
+                    <span className="text-xs text-muted-foreground">{wmoInfo(nightCode, false).label}</span>
                   </span>
                 </span>
                 <span className="text-xs">
@@ -252,13 +252,13 @@ export const WeatherSettings: React.FC<WidgetSettingsProps> = ({ config, onSave,
       )}
 
       <div className="flex items-center justify-between">
-        <span className="text-[10px] opacity-50">数据来源 Open-Meteo（CC-BY 4.0）</span>
+        <span className="text-[10px] text-muted-foreground">数据来源 Open-Meteo（CC-BY 4.0）</span>
         <div className="flex gap-2">
-          <button className="px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-sm" onClick={onClose}>
+          <button className="px-3 py-1.5 rounded-lg border border-border text-sm hover:bg-accent" onClick={onClose}>
             取消
           </button>
           <button
-            className="px-4 py-1.5 rounded-lg bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900 text-sm"
+            className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm hover:bg-primary/80"
             onClick={() => onSave(draft)}
           >
             完成

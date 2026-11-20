@@ -17,12 +17,12 @@ export function WidgetModalHost({ onClose, children, wide }: Props) {
       onClick={onClose}
     >
       <div
-        className={`relative bg-white dark:bg-zinc-900 dark:text-zinc-100 rounded-2xl shadow-xl w-full ${wide ? 'max-w-4xl' : 'max-w-2xl'} max-h-[90vh] overflow-y-auto`}
+        className={`relative bg-popover text-popover-foreground backdrop-blur-xl ring-1 ring-foreground/10 rounded-2xl shadow-xl w-full ${wide ? 'max-w-4xl' : 'max-w-2xl'} max-h-[90vh] overflow-y-auto`}
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
-          className="absolute top-3 right-3 z-10 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10"
+          className="absolute top-3 right-3 z-10 p-1 rounded-full hover:bg-accent"
           aria-label="关闭"
         >
           <X size={18} />

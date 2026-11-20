@@ -31,7 +31,7 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
           <div>
             <label className="block mb-1 font-medium">事件名称</label>
             <input
-              className="w-full rounded-lg border border-zinc-300 dark:border-zinc-600 bg-transparent px-3 py-2"
+              className="w-full rounded-lg border border-input bg-background/60 px-3 py-2 placeholder:text-muted-foreground"
               value={cfg.title}
               onChange={e => patch({ title: e.target.value })}
               placeholder="请输入事件名称"
@@ -42,13 +42,13 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
             <div className="flex gap-2">
               <input
                 type="date"
-                className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-transparent px-3 py-2"
+                className="flex-1 rounded-lg border border-input bg-background/60 px-3 py-2"
                 value={cfg.date}
                 onChange={e => patch({ date: e.target.value })}
               />
               {showRepeat && (
                 <select
-                  className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-transparent px-2 py-2"
+                  className="rounded-lg border border-input bg-background/60 px-2 py-2"
                   value={cfg.repeat ?? 'none'}
                   onChange={e => patch({ repeat: e.target.value as 'none' | 'yearly' })}
                 >
@@ -64,7 +64,7 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
               {FONT_COLORS.map(c => (
                 <button
                   key={c}
-                  className="w-7 h-7 rounded border border-zinc-300 dark:border-zinc-600"
+                  className="w-7 h-7 rounded border border-border"
                   style={{ background: c }}
                   onClick={() => patch({ fontColor: c })}
                   aria-label={c}
@@ -83,11 +83,11 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
           </div>
           <div>
             <label className="block mb-1 font-medium">背景</label>
-            <div className="flex rounded-lg overflow-hidden border border-zinc-300 dark:border-zinc-600 mb-2">
+            <div className="flex rounded-lg overflow-hidden border border-border mb-2">
               {(['image', 'color'] as const).map(t => (
                 <button
                   key={t}
-                  className={`flex-1 py-1.5 ${cfg.bgType === t ? 'bg-zinc-200 dark:bg-zinc-700 font-medium' : ''}`}
+                  className={`flex-1 py-1.5 ${cfg.bgType === t ? 'bg-accent text-accent-foreground font-medium' : 'text-muted-foreground hover:bg-accent/60'}`}
                   onClick={() => patch({ bgType: t })}
                 >
                   {t === 'image' ? '图片' : '颜色'}
@@ -99,7 +99,7 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
                 {BG_PRESETS.map(p => (
                   <button
                     key={p.name}
-                    className={`shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 ${cfg.bgImage === p.name ? 'border-blue-500' : 'border-transparent'}`}
+                    className={`shrink-0 w-14 h-14 rounded-lg overflow-hidden border-2 ${cfg.bgImage === p.name ? 'border-primary' : 'border-transparent'}`}
                     onClick={() => patch({ bgImage: p.name })}
                   >
                     <img src={p.url} alt={p.name} className="w-full h-full object-cover" />
@@ -116,7 +116,7 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
             )}
             {cfg.bgType === 'image' && (
               <input
-                className="w-full mt-2 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-transparent px-3 py-1.5 text-xs"
+                className="w-full mt-2 rounded-lg border border-input bg-background/60 px-3 py-1.5 text-xs placeholder:text-muted-foreground"
                 placeholder="或粘贴自定义图片 URL"
                 value={/^https?:/.test(cfg.bgImage) ? cfg.bgImage : ''}
                 onChange={e => patch({ bgImage: e.target.value })}
@@ -133,7 +133,7 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
             />
           </div>
           <button
-            className="w-full py-2 rounded-lg bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900 font-medium hover:opacity-90"
+            className="w-full py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/80"
             onClick={() => onSave(cfg)}
           >
             完成
@@ -150,8 +150,8 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
               onOpen={() => {}}
             />
           </div>
-          <div className="text-xs opacity-60">{title} · {formatDateCn(cfg.date)}</div>
-          <button className="text-xs underline opacity-60" onClick={onClose}>取消</button>
+          <div className="text-xs text-muted-foreground">{title} · {formatDateCn(cfg.date)}</div>
+          <button className="text-xs text-muted-foreground underline hover:text-foreground" onClick={onClose}>取消</button>
         </div>
       </div>
     </div>

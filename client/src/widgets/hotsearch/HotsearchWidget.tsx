@@ -26,18 +26,18 @@ export const HotsearchCard: React.FC<WidgetCardProps> = ({ isDragging, onOpen })
 
   return (
     <div
-      className="relative w-full h-full rounded-xl overflow-hidden border border-white/20 bg-white/40 dark:bg-zinc-900/50 backdrop-blur-sm shadow-sm cursor-pointer select-none p-3 flex flex-col text-zinc-800 dark:text-zinc-100"
+      className="relative w-full h-full rounded-xl overflow-hidden border border-white/60 dark:border-white/10 bg-white/70 dark:bg-neutral-900/60 backdrop-blur-xl shadow-sm cursor-pointer select-none p-3 flex flex-col text-foreground"
       onClick={() => { if (!isDragging) onOpen() }}
     >
       <div className="flex items-center gap-1 text-xs mb-2 no-drag">
-        <Flame size={13} className="text-orange-500" />
+        <Flame size={13} className="text-muted-foreground" />
         <span className="font-medium mr-auto">热搜</span>
       </div>
       <div className="flex gap-1 mb-2 no-drag" onClick={e => e.stopPropagation()}>
         {PLATFORMS.map(p => (
           <button
             key={p.key}
-            className={`flex-1 text-[11px] py-1 rounded ${platform.key === p.key ? 'bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900' : 'bg-black/5 dark:bg-white/10'}`}
+            className={`flex-1 text-[11px] py-1 rounded transition-colors ${platform.key === p.key ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground hover:bg-accent'}`}
             onClick={() => setPlatform(p)}
           >
             {p.label}
@@ -45,9 +45,9 @@ export const HotsearchCard: React.FC<WidgetCardProps> = ({ isDragging, onOpen })
         ))}
       </div>
       <div className="flex-1 flex flex-col justify-center text-xs no-drag">
-        <span className="opacity-60">榜单数据源暂未接入</span>
+        <span className="text-muted-foreground">榜单数据源暂未接入</span>
         <a
-          className="mt-1 inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline"
+          className="mt-1 inline-flex items-center gap-1 underline underline-offset-2 hover:opacity-70"
           href={platform.url}
           target="_blank"
           rel="noreferrer"
@@ -66,23 +66,23 @@ export const HotsearchSettings: React.FC<WidgetSettingsProps> = ({ onClose }) =>
   return (
     <div className="p-5">
       <h3 className="text-center text-base font-semibold mb-1">热搜</h3>
-      <p className="text-center text-xs opacity-60 mb-4">
+      <p className="text-center text-xs text-muted-foreground mb-4">
         暂无可用的免费榜单接口，当前为跳转官方热榜的降级方案
       </p>
       <div className="space-y-2">
         {PLATFORMS.map(p => (
           <button
             key={p.key}
-            className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-black/5 dark:hover:bg-white/10 text-sm"
+            className="w-full flex items-center justify-between px-4 py-3 rounded-xl border border-border hover:bg-accent text-sm"
             onClick={() => open(p.url)}
           >
-            <span className="inline-flex items-center gap-2"><Flame size={14} className="text-orange-500" />{p.label}热榜</span>
-            <ExternalLink size={14} className="opacity-60" />
+            <span className="inline-flex items-center gap-2"><Flame size={14} className="text-muted-foreground" />{p.label}热榜</span>
+            <ExternalLink size={14} className="text-muted-foreground" />
           </button>
         ))}
       </div>
       <div className="mt-4 text-center">
-        <button className="text-xs underline opacity-60" onClick={onClose}>关闭</button>
+        <button className="text-xs text-muted-foreground underline hover:text-foreground" onClick={onClose}>关闭</button>
       </div>
     </div>
   )

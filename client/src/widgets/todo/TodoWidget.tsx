@@ -54,25 +54,25 @@ export const TodoCard: React.FC<WidgetCardProps> = ({ bookmark, isDragging, onOp
 
   return (
     <div
-      className="relative w-full h-full rounded-xl overflow-hidden border border-white/20 bg-white/40 dark:bg-zinc-900/50 backdrop-blur-sm shadow-sm cursor-pointer select-none p-3 flex flex-col text-zinc-800 dark:text-zinc-100"
+      className="relative w-full h-full rounded-xl overflow-hidden border border-white/60 dark:border-white/10 bg-white/70 dark:bg-neutral-900/60 backdrop-blur-xl shadow-sm cursor-pointer select-none p-3 flex flex-col text-foreground"
       onClick={() => { if (!isDragging) onOpen() }}
     >
       <div className="flex items-center justify-between text-xs mb-2 no-drag">
         <span className="font-medium truncate">待办事项</span>
-        <span className="opacity-60">{pending.length} 项</span>
+        <span className="text-muted-foreground">{pending.length} 项</span>
       </div>
       <div className="flex-1 overflow-hidden text-xs space-y-1 no-drag">
-        {loading && <div className="opacity-50">加载中...</div>}
+        {loading && <div className="text-muted-foreground">加载中...</div>}
         {!loading && pending.length === 0 && (
-          <div className="h-full flex items-center justify-center opacity-50">暂无待办，点击添加</div>
+          <div className="h-full flex items-center justify-center text-muted-foreground">暂无待办，点击添加</div>
         )}
         {pending.slice(0, 4).map(t => (
           <div key={t.id} className="flex items-center gap-1.5 truncate">
-            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+            <span className="w-1.5 h-1.5 rounded-full bg-foreground/30 shrink-0" />
             <span className="truncate">{t.content}</span>
           </div>
         ))}
-        {pending.length > 4 && <div className="opacity-50">还有 {pending.length - 4} 项...</div>}
+        {pending.length > 4 && <div className="text-muted-foreground">还有 {pending.length - 4} 项...</div>}
       </div>
     </div>
   )
@@ -133,14 +133,14 @@ export const TodoSettings: React.FC<WidgetSettingsProps> = ({ bookmark, onClose 
 
       <div className="flex gap-2 mb-3">
         <input
-          className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-transparent px-3 py-2 text-sm"
+          className="flex-1 rounded-lg border border-input bg-background/60 px-3 py-2 text-sm placeholder:text-muted-foreground"
           placeholder="添加待办，回车确认"
           value={text}
           onChange={e => setText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') add() }}
         />
         <button
-          className="px-4 py-2 rounded-lg bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900 text-sm inline-flex items-center gap-1 disabled:opacity-50"
+          className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm inline-flex items-center gap-1 hover:bg-primary/80 disabled:opacity-50"
           onClick={add}
           disabled={busy || !text.trim()}
         >
@@ -148,24 +148,24 @@ export const TodoSettings: React.FC<WidgetSettingsProps> = ({ bookmark, onClose 
         </button>
       </div>
 
-      {error && <div className="text-xs text-red-500 mb-2">{error}</div>}
-      {loading && <div className="text-xs opacity-60">加载中...</div>}
+      {error && <div className="text-xs text-destructive mb-2">{error}</div>}
+      {loading && <div className="text-xs text-muted-foreground">加载中...</div>}
 
-      <div className="max-h-80 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700">
+      <div className="max-h-80 overflow-y-auto divide-y divide-border rounded-lg border border-border">
         {!loading && items.length === 0 && (
-          <div className="py-8 text-center text-xs opacity-50">暂无待办</div>
+          <div className="py-8 text-center text-xs text-muted-foreground">暂无待办</div>
         )}
         {items.map(t => (
           <div key={t.id} className="flex items-center gap-2 px-3 py-2 text-sm group">
             <input
               type="checkbox"
-              className="accent-blue-600"
+              className="accent-primary"
               checked={t.done}
               onChange={() => toggle(t)}
             />
-            <span className={`flex-1 ${t.done ? 'line-through opacity-50' : ''}`}>{t.content}</span>
+            <span className={`flex-1 ${t.done ? 'line-through text-muted-foreground' : ''}`}>{t.content}</span>
             <button
-              className="opacity-0 group-hover:opacity-60 hover:!opacity-100 text-red-500"
+              className="opacity-0 group-hover:opacity-60 hover:!opacity-100 text-destructive"
               onClick={() => remove(t)}
               aria-label="删除"
             >
@@ -176,7 +176,7 @@ export const TodoSettings: React.FC<WidgetSettingsProps> = ({ bookmark, onClose 
       </div>
 
       <div className="mt-4 text-center">
-        <button className="text-xs underline opacity-60" onClick={onClose}>关闭</button>
+        <button className="text-xs text-muted-foreground underline hover:text-foreground" onClick={onClose}>关闭</button>
       </div>
     </div>
   )

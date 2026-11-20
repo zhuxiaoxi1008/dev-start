@@ -115,7 +115,7 @@ export function ImageConvertSettings({ onClose }: WidgetSettingsProps) {
             onChange={e => pickFile(e.target.files?.[0])}
           />
           <button
-            className="w-full h-32 rounded-xl border-2 border-dashed border-zinc-300 dark:border-zinc-600 flex flex-col items-center justify-center gap-1 hover:border-blue-400"
+            className="w-full h-32 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 hover:border-foreground/40"
             onClick={() => inputRef.current?.click()}
           >
             {src ? (
@@ -123,11 +123,11 @@ export function ImageConvertSettings({ onClose }: WidgetSettingsProps) {
             ) : (
               <>
                 <span className="text-sm font-medium">点击选择图片</span>
-                <span className="text-xs opacity-60">支持 JPG / PNG / WEBP 等常见格式</span>
+                <span className="text-xs text-muted-foreground">支持 JPG / PNG / WEBP 等常见格式</span>
               </>
             )}
           </button>
-          {src && <div className="text-xs opacity-60 truncate">{src.file.name} · {formatSize(src.file.size)}</div>}
+          {src && <div className="text-xs text-muted-foreground truncate">{src.file.name} · {formatSize(src.file.size)}</div>}
 
           <div>
             <label className="block mb-1 text-sm font-medium">目标格式</label>
@@ -135,7 +135,7 @@ export function ImageConvertSettings({ onClose }: WidgetSettingsProps) {
               {FORMAT_OPTIONS.map(f => (
                 <button
                   key={f.value}
-                  className={`py-2 rounded-lg border text-sm ${target === f.value ? 'bg-zinc-800 text-white border-zinc-800 dark:bg-zinc-200 dark:text-zinc-900' : 'border-zinc-300 dark:border-zinc-600'}`}
+                  className={`py-2 rounded-lg border text-sm ${target === f.value ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:bg-accent'}`}
                   onClick={() => setTarget(f.value)}
                 >
                   {f.label}
@@ -158,33 +158,33 @@ export function ImageConvertSettings({ onClose }: WidgetSettingsProps) {
 
           <div className="flex gap-2">
             <button
-              className="flex-1 py-2 rounded-lg bg-blue-600 text-white font-medium hover:opacity-90 disabled:opacity-50"
+              className="flex-1 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/80 disabled:opacity-50"
               disabled={!src || busy}
               onClick={convert}
             >
               {busy ? '转换中...' : '开始转换'}
             </button>
             <button
-              className="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-600 text-sm"
+              className="px-4 py-2 rounded-lg border border-border text-sm hover:bg-accent"
               onClick={onClose}
             >
               关闭
             </button>
           </div>
-          {error && <div className="text-xs text-red-500">{error}</div>}
+          {error && <div className="text-xs text-destructive">{error}</div>}
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-2 rounded-xl bg-black/5 dark:bg-white/5 p-3 min-h-40">
+        <div className="flex flex-col items-center justify-center gap-2 rounded-xl bg-muted p-3 min-h-40">
           {out ? (
             <>
               <img src={out.url} alt="转换结果" className="max-h-40 max-w-full object-contain" />
-              <div className="text-xs opacity-70">{formatSize(out.size)} · {out.ext.toUpperCase()}</div>
-              <button className="px-4 py-1.5 rounded-lg bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900 text-sm" onClick={download}>
+              <div className="text-xs text-muted-foreground">{formatSize(out.size)} · {out.ext.toUpperCase()}</div>
+              <button className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm hover:bg-primary/80" onClick={download}>
                 下载
               </button>
             </>
           ) : (
-            <span className="text-xs opacity-50">转换结果会显示在这里</span>
+            <span className="text-xs text-muted-foreground">转换结果会显示在这里</span>
           )}
         </div>
       </div>

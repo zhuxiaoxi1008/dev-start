@@ -55,18 +55,18 @@ export function WidgetPicker({ open, onClose, onAdd }: Props) {
   return (
     <div className="fixed inset-0 z-[90] bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
       <div
-        className="relative bg-white dark:bg-zinc-900 dark:text-zinc-100 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5"
+        className="relative bg-popover text-popover-foreground backdrop-blur-xl ring-1 ring-foreground/10 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5"
         onClick={e => e.stopPropagation()}
       >
         <button
-          className="absolute top-3 right-3 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10"
+          className="absolute top-3 right-3 p-1 rounded-full hover:bg-accent"
           onClick={onClose}
           aria-label="关闭"
         >
           <X size={18} />
         </button>
         <h3 className="text-center text-base font-semibold mb-1">添加小组件</h3>
-        <p className="text-center text-xs opacity-60 mb-4">选择要放到桌面上的组件</p>
+        <p className="text-center text-xs text-muted-foreground mb-4">选择要放到桌面上的组件</p>
 
         <div className="grid grid-cols-2 gap-3">
           {widgets.map(({ type, label }) => {
@@ -74,16 +74,16 @@ export function WidgetPicker({ open, onClose, onAdd }: Props) {
             return (
               <button
                 key={type}
-                className="flex items-start gap-3 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-black/5 dark:hover:bg-white/10 text-left transition-colors disabled:opacity-50"
+                className="flex items-start gap-3 p-3 rounded-xl border border-border hover:bg-accent text-left transition-colors disabled:opacity-50"
                 onClick={() => handleAdd(type)}
                 disabled={busy !== null}
               >
-                <span className="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                <span className="w-9 h-9 rounded-lg bg-foreground/5 text-foreground flex items-center justify-center shrink-0">
                   <Icon size={18} />
                 </span>
                 <span className="min-w-0">
                   <span className="block text-sm font-medium">{label}</span>
-                  <span className="block text-[11px] opacity-60 truncate">
+                  <span className="block text-[11px] text-muted-foreground truncate">
                     {busy === type ? '添加中...' : (DESCRIPTIONS[type] ?? '')}
                   </span>
                 </span>

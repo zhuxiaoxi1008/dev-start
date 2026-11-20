@@ -40,10 +40,10 @@ export function CalendarCard({ isDragging, onOpen }: WidgetCardProps) {
 
   return (
     <div
-      className="relative w-full h-full rounded-xl overflow-hidden border border-white/20 bg-white/40 dark:bg-zinc-900/50 backdrop-blur-sm shadow-sm cursor-pointer select-none p-3 flex flex-col justify-between text-zinc-800 dark:text-zinc-100"
+      className="relative w-full h-full rounded-xl overflow-hidden border border-white/60 dark:border-white/10 bg-white/70 dark:bg-neutral-900/60 backdrop-blur-xl shadow-sm cursor-pointer select-none p-3 flex flex-col justify-between text-foreground"
       onClick={() => { if (!isDragging) onOpen() }}
     >
-      <div className="flex items-center justify-between text-xs opacity-80 no-drag">
+      <div className="flex items-center justify-between text-xs text-muted-foreground no-drag">
         <span>{today.getFullYear()}年{today.getMonth() + 1}月</span>
         <span>星期{WEEK_CN[today.getDay()]}</span>
       </div>
@@ -52,7 +52,7 @@ export function CalendarCard({ isDragging, onOpen }: WidgetCardProps) {
         <div className="truncate">
           {lunar.getMonthInChinese()}月{lunar.getDayInChinese()}{event ? ` · ${event}` : ''}
         </div>
-        <div className="opacity-70">第{dayOfYear(today)}天 · 第{weekOfYear(today)}周</div>
+        <div className="text-muted-foreground">第{dayOfYear(today)}天 · 第{weekOfYear(today)}周</div>
       </div>
     </div>
   )
@@ -81,7 +81,7 @@ function MonthGrid({ year, month, weekStart, selected, onSelect }: {
 
   return (
     <div>
-      <div className="grid grid-cols-7 mb-1 text-center text-xs opacity-60">
+      <div className="grid grid-cols-7 mb-1 text-center text-xs text-muted-foreground">
         {weekHeaders.map(w => <div key={w} className="py-1">{w}</div>)}
       </div>
       <div className="grid grid-cols-7 gap-1">
@@ -97,16 +97,16 @@ function MonthGrid({ year, month, weekStart, selected, onSelect }: {
               onClick={() => onSelect(date)}
               className={[
                 'flex flex-col items-center justify-center rounded-lg py-1.5 leading-tight transition-colors',
-                isSelected ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900'
-                  : isToday ? 'bg-blue-500/15 ring-1 ring-blue-400'
-                    : 'hover:bg-black/5 dark:hover:bg-white/10',
+                isSelected ? 'bg-primary text-primary-foreground'
+                  : isToday ? 'bg-accent text-accent-foreground ring-1 ring-foreground/20'
+                    : 'hover:bg-accent',
                 !inMonth ? 'opacity-35' : '',
               ].join(' ')}
             >
               <span className={`text-sm font-medium ${isWeekend && !isSelected ? 'text-red-500' : ''}`}>
                 {date.getDate()}
               </span>
-              <span className={`text-[10px] truncate max-w-full ${isEvent && !isSelected ? 'text-red-400' : 'opacity-70'}`}>
+              <span className={`text-[10px] truncate max-w-full ${isSelected ? 'opacity-80' : isEvent ? 'text-red-500' : 'text-muted-foreground'}`}>
                 {label}
               </span>
             </button>
@@ -134,17 +134,17 @@ function DetailPanel({ date }: { date: Date }) {
         <div className="text-lg font-semibold">
           {date.getFullYear()}年{date.getMonth() + 1}月{date.getDate()}日
         </div>
-        <div className="text-xs opacity-70 mt-0.5">
+        <div className="text-xs text-muted-foreground mt-0.5">
           星期{WEEK_CN[date.getDay()]} · 农历{lunar.getMonthInChinese()}月{lunar.getDayInChinese()}
         </div>
       </div>
 
       <div className="flex flex-wrap gap-1.5 justify-center text-xs">
-        <span className="px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10">{lunar.getYearInGanZhi()}年</span>
-        <span className="px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10">{lunar.getMonthInGanZhi()}月</span>
-        <span className="px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10">{lunar.getDayInGanZhi()}日</span>
-        <span className="px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10">生肖{lunar.getYearShengXiao()}</span>
-        <span className="px-2 py-0.5 rounded-full bg-black/5 dark:bg-white/10">{solar.getXingZuo()}座</span>
+        <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{lunar.getYearInGanZhi()}年</span>
+        <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{lunar.getMonthInGanZhi()}月</span>
+        <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{lunar.getDayInGanZhi()}日</span>
+        <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground">生肖{lunar.getYearShengXiao()}</span>
+        <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{solar.getXingZuo()}座</span>
       </div>
 
       <div className="grid grid-cols-2 gap-2">
@@ -159,33 +159,33 @@ function DetailPanel({ date }: { date: Date }) {
       </div>
 
       <div className="grid grid-cols-3 gap-2 text-xs">
-        <div className="rounded-lg bg-black/5 dark:bg-white/10 p-2 text-center">
-          <div className="opacity-60">月相</div>
+        <div className="rounded-lg bg-muted p-2 text-center">
+          <div className="text-muted-foreground">月相</div>
           <div className="font-medium mt-0.5">{lunar.getYueXiang()}</div>
         </div>
-        <div className="rounded-lg bg-black/5 dark:bg-white/10 p-2 text-center">
-          <div className="opacity-60">物候</div>
+        <div className="rounded-lg bg-muted p-2 text-center">
+          <div className="text-muted-foreground">物候</div>
           <div className="font-medium mt-0.5 truncate" title={lunar.getWuHou()}>{lunar.getWuHou()}</div>
         </div>
-        <div className="rounded-lg bg-black/5 dark:bg-white/10 p-2 text-center">
-          <div className="opacity-60">值日</div>
+        <div className="rounded-lg bg-muted p-2 text-center">
+          <div className="text-muted-foreground">值日</div>
           <div className="font-medium mt-0.5">{lunar.getZhiXing()}</div>
         </div>
       </div>
 
       <div>
-        <div className="text-xs opacity-60 mb-1">吉神方位</div>
+        <div className="text-xs text-muted-foreground mb-1">吉神方位</div>
         <div className="grid grid-cols-5 gap-1 text-center text-xs">
           {positions.map(p => (
-            <div key={p.name} className="rounded-lg bg-black/5 dark:bg-white/10 py-1.5">
-              <div className="opacity-60">{p.name}</div>
+            <div key={p.name} className="rounded-lg bg-muted py-1.5">
+              <div className="text-muted-foreground">{p.name}</div>
               <div className="font-medium">{p.desc}</div>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="text-xs opacity-70 text-center">
+      <div className="text-xs text-muted-foreground text-center">
         冲{lunar.getDayChongDesc()} · 煞{lunar.getDaySha()}
       </div>
     </div>
@@ -223,11 +223,11 @@ export const CalendarSettings: React.FC<WidgetSettingsProps> = ({ config, onClos
         <div>
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-2">
-              <button className="px-2 py-1 rounded hover:bg-black/5 dark:hover:bg-white/10" onClick={() => shiftMonth(-1)}>‹</button>
+              <button className="px-2 py-1 rounded hover:bg-accent" onClick={() => shiftMonth(-1)}>‹</button>
               <span className="text-sm font-medium">{monthTitle}</span>
-              <button className="px-2 py-1 rounded hover:bg-black/5 dark:hover:bg-white/10" onClick={() => shiftMonth(1)}>›</button>
+              <button className="px-2 py-1 rounded hover:bg-accent" onClick={() => shiftMonth(1)}>›</button>
             </div>
-            <button className="text-xs px-2 py-1 rounded border border-zinc-300 dark:border-zinc-600" onClick={backToToday}>
+            <button className="text-xs px-2 py-1 rounded border border-border text-muted-foreground hover:bg-accent" onClick={backToToday}>
               今天
             </button>
           </div>
@@ -239,12 +239,12 @@ export const CalendarSettings: React.FC<WidgetSettingsProps> = ({ config, onClos
             onSelect={setSelected}
           />
         </div>
-        <div className="md:border-l md:border-zinc-200 md:dark:border-zinc-700 md:pl-5">
+        <div className="md:border-l md:border-border md:pl-5">
           <DetailPanel date={selected} />
         </div>
       </div>
       <div className="mt-4 text-center">
-        <button className="text-xs underline opacity-60" onClick={onClose}>关闭</button>
+        <button className="text-xs text-muted-foreground underline hover:text-foreground" onClick={onClose}>关闭</button>
       </div>
     </div>
   )

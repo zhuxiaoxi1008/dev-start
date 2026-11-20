@@ -50,17 +50,17 @@ export const NotepadCard: React.FC<WidgetCardProps> = ({ bookmark, isDragging, o
 
   return (
     <div
-      className="relative w-full h-full rounded-xl overflow-hidden border border-white/20 bg-white/40 dark:bg-zinc-900/50 backdrop-blur-sm shadow-sm cursor-pointer select-none p-3 flex flex-col text-zinc-800 dark:text-zinc-100"
+      className="relative w-full h-full rounded-xl overflow-hidden border border-white/60 dark:border-white/10 bg-white/70 dark:bg-neutral-900/60 backdrop-blur-xl shadow-sm cursor-pointer select-none p-3 flex flex-col text-foreground"
       onClick={() => { if (!isDragging) onOpen() }}
     >
       <div className="text-xs font-medium mb-2 no-drag">记事本</div>
       <div className="flex-1 overflow-hidden text-xs leading-relaxed no-drag">
         {loading ? (
-          <span className="opacity-50">加载中...</span>
+          <span className="text-muted-foreground">加载中...</span>
         ) : content ? (
           <p className="whitespace-pre-wrap line-clamp-5">{content}</p>
         ) : (
-          <span className="opacity-50">点击开始记录</span>
+          <span className="text-muted-foreground">点击开始记录</span>
         )}
       </div>
     </div>
@@ -97,20 +97,20 @@ export const NotepadSettings: React.FC<WidgetSettingsProps> = ({ bookmark, onClo
   return (
     <div className="p-5">
       <h3 className="text-center text-base font-semibold mb-4">记事本</h3>
-      {error && <div className="text-xs text-red-500 mb-2">{error}</div>}
+      {error && <div className="text-xs text-destructive mb-2">{error}</div>}
       <textarea
-        className="w-full h-64 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-transparent px-3 py-2 text-sm resize-none"
+        className="w-full h-64 rounded-lg border border-input bg-background/60 px-3 py-2 text-sm resize-none placeholder:text-muted-foreground"
         placeholder={loading ? '加载中...' : '记录点什么...'}
         value={content}
         onChange={e => setContent(e.target.value)}
       />
       <div className="mt-3 flex items-center justify-end gap-2">
         {saved && <span className="text-xs text-emerald-500 mr-auto">已保存</span>}
-        <button className="px-3 py-1.5 rounded-lg border border-zinc-300 dark:border-zinc-600 text-sm" onClick={onClose}>
+        <button className="px-3 py-1.5 rounded-lg border border-border text-sm hover:bg-accent" onClick={onClose}>
           关闭
         </button>
         <button
-          className="px-4 py-1.5 rounded-lg bg-zinc-800 text-white dark:bg-zinc-200 dark:text-zinc-900 text-sm disabled:opacity-50"
+          className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm hover:bg-primary/80 disabled:opacity-50"
           onClick={save}
           disabled={saving}
         >
