@@ -6,12 +6,12 @@ import type { WidgetCardProps, WidgetSettingsProps } from '@/types/widgets'
 import { useConfig } from '@/context/UserConfigContext'
 import { notifyWidgetDataChanged, onWidgetDataChanged } from '../dataEvents'
 
-interface Note {
+export interface Note {
   id: string
   content: string
 }
 
-function useNote(widgetId: string) {
+export function useNote(widgetId: string) {
   const { settings } = useConfig()
   const [content, setContent] = useState('')
   const [loading, setLoading] = useState(true)

@@ -1,11 +1,12 @@
 // client/src/widgets/WidgetRenderer.tsx
 // 查注册表分发；link 及未注册类型回退 LinkCard，banner 兼容映射到图片格式转换
-import React, { Suspense } from 'react'
+import React, { Suspense, useEffect } from 'react'
 import { useConfig } from '@/context/UserConfigContext'
 import type { Bookmark } from '@/types/userConfig'
 import type { WidgetConfig } from '@/types/widgets'
 import { getWidget, LinkCard } from './registry'
 import { WidgetModalHost } from './WidgetModalHost'
+import { useWidgetActions } from './WidgetActionContext'
 import './registerAll'
 
 interface WidgetRendererProps {
@@ -16,6 +17,10 @@ interface WidgetRendererProps {
 export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ bookmark, isDragging }) => {
   const { settings, patchSetting } = useConfig()
   const [modalOpen, setModalOpen] = React.useState(false)
+
+  // 注册"打开设置"入口，供右键菜单 / 外部触发调用（必须在条件 return 之前，保证 hook 顺序稳定）
+  const actions = useWidgetActions()
+  useEffect(() => actions?.registerOpener(bookmark.id, () => setModalOpen(true)), [actions, bookmark.id])
 
   const type = bookmark.widget_type || 'link'
   // banner 是"图片格式转换"的旧形态，统一交给 image_convert 组件处理

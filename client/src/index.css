@@ -123,11 +123,18 @@
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
+  html, body, #root {
+    height: 100%;
   }
   html {
     @apply font-sans;
+    /* 与 body 一起锁定：页面本身不产生滚动条，仅内容区内部滚动（双保险，避免任一条失效出现外滚动条） */
+    overflow: hidden;
+  }
+  body {
+    @apply bg-background text-foreground;
+    /* 首页固定为单页视口高度，页面本身不产生滚动条，仅内容区内部滚动 */
+    overflow: hidden;
   }
 }
 
@@ -135,5 +142,13 @@
 @layer utilities {
   .bg-transition {
     transition: background 0.7s ease-in-out, background-image 0.7s ease-in-out;
+  }
+  /* 允许滚动但隐藏滚动条外观：用于内容区，单页不显示滚动条 */
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }

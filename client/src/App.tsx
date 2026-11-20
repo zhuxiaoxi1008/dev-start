@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useRef } from 'react'
 import { useConfig } from '@/context/UserConfigContext'
 import { BackgroundLayer } from '@/components/BackgroundLayer'
 import { TimeDisplay } from '@/components/TimeDisplay'
@@ -12,6 +12,8 @@ import { WIDGET_DEFAULT_SIZE, type WidgetType } from '@/types/widgets'
 import { getWidget } from '@/widgets/registry'
 import { Responsive, type Layout } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
+import { WidgetActionProvider, type WidgetActions } from '@/widgets/WidgetActionContext'
+import { WidgetContextMenu } from '@/widgets/WidgetContextMenu'
 
 const searchEngines = [
   { name: 'Google', icon: 'https://www.google.com/favicon.ico', url: 'https://www.google.com/search?q=' },
@@ -32,6 +34,41 @@ function HomePage() {
   const [bookmarksLoading, setBookmarksLoading] = useState(true)
   // 👉 新增拖拽标记
   const [isDragging, setIsDragging] = useState(false)
+
+  // 右键菜单状态：哪个小组件、在哪个坐标弹出
+  const [menu, setMenu] = useState<{ open: boolean; x: number; y: number; bookmark: Bookmark | null }>({
+    open: false, x: 0, y: 0, bookmark: null,
+  })
+  // 各小组件"打开设置"入口注册表：WidgetRenderer 通过 context 注册自身打开函数
+  const openersRef = useRef(new Map<string, () => void>())
+
+  // 跨组件动作：打开设置 / 移除组件（移除即 DELETE bookmark 并从本地状态过滤）
+  const actions = useMemo<WidgetActions>(() => ({
+    registerOpener: (id, fn) => {
+      openersRef.current.set(id, fn)
+      return () => { openersRef.current.delete(id) }
+    },
+    openSettings: (id) => { openersRef.current.get(id)?.() },
+    removeWidget: async (id) => {
+      try {
+        const res = await fetch(`/api/bookmarks/${id}`, {
+          method: 'DELETE',
+          headers: { 'X-User-Id': settings.user_id },
+        })
+        if (!res.ok) throw new Error('移除失败')
+        setBookmarks(prev => prev.filter(b => b.id !== id))
+      } catch (err) {
+        console.error('移除组件失败', err)
+      }
+    },
+  }), [settings.user_id])
+
+  // 全局屏蔽浏览器默认右键菜单（统一改由小组件自定义菜单接管）
+  useEffect(() => {
+    const prevent = (e: MouseEvent) => e.preventDefault()
+    window.addEventListener('contextmenu', prevent)
+    return () => window.removeEventListener('contextmenu', prevent)
+  }, [])
 
   const handleSearch = () => {
     const val = keyword.trim()
@@ -141,15 +178,16 @@ function HomePage() {
   }
 
   if (loading || bookmarksLoading) {
-    return <div className="min-h-screen flex items-center justify-center text-foreground">加载配置...</div>
+    return <div className="h-screen flex items-center justify-center text-foreground">加载配置...</div>
   }
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex flex-col">
-      <BackgroundLayer />
+    <WidgetActionProvider actions={actions}>
+      <div className="h-screen relative overflow-hidden flex flex-col">
+        <BackgroundLayer />
       <Sidebar onAddClick={() => setPickerOpen(true)} />
 
-      <div className="relative z-20 flex flex-col items-center pt-16 px-4 shrink-0 pointer-events-none">
+      <div className="relative z-20 flex flex-col items-center pt-4 px-4 shrink-0 pointer-events-none">
         <div className="pointer-events-auto flex flex-col items-center w-full">
           <TimeDisplay />
           <SearchBar
@@ -164,7 +202,7 @@ function HomePage() {
         </div>
       </div>
 
-      <div className="relative z-10 flex-1 overflow-y-auto mt-8 pb-32">
+      <div className="relative z-10 flex-1 min-h-0 overflow-y-auto no-scrollbar mt-8 pb-32">
         <div className="max-w-6xl mx-auto px-4 relative">
           <Responsive
             className="layout"
@@ -191,7 +229,14 @@ function HomePage() {
             }}
           >
             {bookmarks.map((widget) => (
-              <div key={widget.id} className="group relative cursor-grab active:cursor-grabbing">
+              <div
+                key={widget.id}
+                className="group relative cursor-grab active:cursor-grabbing"
+                onContextMenu={(e) => {
+                  e.preventDefault()
+                  setMenu({ open: true, x: e.clientX, y: e.clientY, bookmark: widget })
+                }}
+              >
                 {/* 传给子组件 */}
                 <WidgetRenderer bookmark={widget} isDragging={isDragging} />
               </div>
@@ -200,9 +245,17 @@ function HomePage() {
         </div>
       </div>
 
-      <SettingModal open={settingOpen} onClose={() => setSettingOpen(false)} />
-      <WidgetPicker open={pickerOpen} onClose={() => setPickerOpen(false)} onAdd={addWidget} />
-    </div>
+        <SettingModal open={settingOpen} onClose={() => setSettingOpen(false)} />
+        <WidgetPicker open={pickerOpen} onClose={() => setPickerOpen(false)} onAdd={addWidget} />
+        <WidgetContextMenu
+          open={menu.open}
+          x={menu.x}
+          y={menu.y}
+          bookmark={menu.bookmark}
+          onClose={() => setMenu(m => ({ ...m, open: false }))}
+        />
+      </div>
+    </WidgetActionProvider>
   )
 }
 

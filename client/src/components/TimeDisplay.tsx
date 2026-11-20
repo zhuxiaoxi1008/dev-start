@@ -25,7 +25,7 @@ export function TimeDisplay() {
   const week = weekArr[now.getDay()];
 
   return (
-    <div className="text-center my-6">
+    <div className="text-center mt-6">
       <div
         className="text-6xl mxs:text-5xl tabular-nums text-white font-medium leading-[80px]"
         style={{ textShadow: "0 2px 6px rgba(0,0,0,.16)" }}
@@ -33,7 +33,7 @@ export function TimeDisplay() {
         {hh}:{mm}:{ss}
       </div>
       <div
-        className="mt-2 text-2xl"
+        className="text-lg"
         style={{
           color: "#ffffff",
           opacity: 0.85,

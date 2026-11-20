@@ -34,7 +34,7 @@ export function SearchBar({
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto mt-10">
+    <div className="w-full max-w-2xl mx-auto mt-4">
       <div className="flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/70 dark:bg-neutral-900/60 backdrop-blur-xl border border-white/60 dark:border-white/10 shadow-sm">
         {/* 搜索引擎选择 */}
         <div className="relative">

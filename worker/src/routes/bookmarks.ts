@@ -94,4 +94,20 @@ bookmarks.patch('/layout', userIdMiddleware, async (c) => {
   return c.json({ success: true })
 })
 
+// 4. 删除书签/小组件（右键菜单"移除组件"调用）
+bookmarks.delete('/:id', userIdMiddleware, async (c) => {
+  const userId = c.get('userId')
+  const supabase = getSupabaseClient(c.env)
+  const id = c.req.param('id')
+
+  const { error } = await supabase
+    .from('bookmarks')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', userId)
+
+  if (error) return c.json({ error: error.message }, 500)
+  return c.json({ success: true })
+})
+
 export default bookmarks

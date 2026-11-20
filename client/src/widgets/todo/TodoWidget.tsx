@@ -7,7 +7,7 @@ import type { WidgetCardProps, WidgetSettingsProps } from '@/types/widgets'
 import { useConfig } from '@/context/UserConfigContext'
 import { notifyWidgetDataChanged, onWidgetDataChanged } from '../dataEvents'
 
-interface Todo {
+export interface Todo {
   id: string
   content: string
   done: boolean
@@ -18,7 +18,7 @@ export function defaultTodoConfig(): Record<string, never> {
   return {}
 }
 
-function useTodos(widgetId: string) {
+export function useTodos(widgetId: string) {
   const { settings } = useConfig()
   const [items, setItems] = useState<Todo[]>([])
   const [loading, setLoading] = useState(true)
