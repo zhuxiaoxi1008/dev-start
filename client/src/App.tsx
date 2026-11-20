@@ -5,8 +5,11 @@ import { TimeDisplay } from '@/components/TimeDisplay'
 import { SearchBar } from '@/components/SearchBar'
 import { SettingModal } from '@/components/SettingModal'
 import { Sidebar } from '@/components/Sidebar'
+import { WidgetPicker } from '@/components/WidgetPicker'
 import { WidgetRenderer } from '@/widgets/WidgetRenderer'
 import type { Bookmark } from '@/types/userConfig'
+import { WIDGET_DEFAULT_SIZE, type WidgetType } from '@/types/widgets'
+import { getWidget } from '@/widgets/registry'
 import { Responsive, type Layout } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 
@@ -23,6 +26,7 @@ function HomePage() {
   const [keyword, setKeyword] = useState("")
   const [selectedEngine, setSelectedEngine] = useState<EngineItem>(searchEngines[0])
   const [settingOpen, setSettingOpen] = useState(false)
+  const [pickerOpen, setPickerOpen] = useState(false)
   
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
   const [bookmarksLoading, setBookmarksLoading] = useState(true)
@@ -103,6 +107,39 @@ function HomePage() {
     }
   }
 
+  // 添加小组件：按默认尺寸追加到网格底部
+  const addWidget = async (type: WidgetType) => {
+    const label = getWidget(type)?.label ?? '小组件'
+    const size = WIDGET_DEFAULT_SIZE[type] ?? { w: 2, h: 2 }
+    const maxY = bookmarks.reduce((m, bm) => Math.max(m, bm.y + bm.h), 0)
+    try {
+      const res = await fetch('/api/bookmarks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-User-Id': settings.user_id,
+        },
+        body: JSON.stringify({
+          title: label,
+          widget_type: type,
+          w: size.w,
+          h: size.h,
+          x: 0,
+          y: maxY,
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.error || '添加失败')
+      }
+      const created = await res.json() as Bookmark
+      setBookmarks(prev => [...prev, created])
+    } catch (err) {
+      console.error('添加小组件失败', err)
+      alert(err instanceof Error ? err.message : '添加小组件失败')
+    }
+  }
+
   if (loading || bookmarksLoading) {
     return <div className="min-h-screen flex items-center justify-center text-foreground">加载配置...</div>
   }
@@ -110,7 +147,7 @@ function HomePage() {
   return (
     <div className="min-h-screen relative overflow-hidden flex flex-col">
       <BackgroundLayer />
-      <Sidebar />
+      <Sidebar onAddClick={() => setPickerOpen(true)} />
 
       <div className="relative z-20 flex flex-col items-center pt-16 px-4 shrink-0 pointer-events-none">
         <div className="pointer-events-auto flex flex-col items-center w-full">
@@ -139,7 +176,7 @@ function HomePage() {
             onLayoutChange={onLayoutChange}
             draggableCancel=".no-drag"
             isBounded={true}
-            isResizable={false} 
+            resizeConfig={{ enabled: false }}
             compactType="vertical" 
             preventCollision={false} 
             margin={[16, 16]} 
@@ -164,6 +201,7 @@ function HomePage() {
       </div>
 
       <SettingModal open={settingOpen} onClose={() => setSettingOpen(false)} />
+      <WidgetPicker open={pickerOpen} onClose={() => setPickerOpen(false)} onAdd={addWidget} />
     </div>
   )
 }

@@ -26,6 +26,8 @@ create table if not exists setting_template (
     bg_solid_color      text not null default '#0f172a',
     bg_gradient         text not null default '#1e1b4b,#020617',
     bg_gradient_angle   int not null default 135,
+    wallpaper_a         text not null default '',       -- 壁纸A：预设/推荐壁纸
+    wallpaper_b         text not null default '',       -- 壁纸B：自定义图片地址
     default_bookmarks   jsonb not null default '[]'::jsonb,
     created_at          timestamptz default now(),
     updated_at          timestamptz default now()
@@ -68,12 +70,26 @@ create table if not exists user_settings (
     bg_solid_color      text default '#0f172a',
     bg_gradient         text default '#1e1b4b,#020617',
     bg_gradient_angle   int default 135,
+    wallpaper_a         text not null default '',       -- 壁纸A：预设/推荐壁纸
+    wallpaper_b         text not null default '',       -- 壁纸B：自定义图片地址
     dark_mode           boolean default false,
     widgets_config      jsonb default '{}',
     sidebar_position    text default 'left',
     created_at          timestamptz default now(),
     updated_at          timestamptz default now()
 );
+
+-- ============================================================
+-- 第 1.5 部分：旧库补列（幂等）
+-- 早期版本只有单一 wallpaper 列，缺少 wallpaper_a / wallpaper_b 时
+-- 新用户初始化会报 PGRST204。create table if not exists 不会给已存在
+-- 的表补列，所以这里显式补齐；新库执行时这四句是空操作。
+-- 完整的旧数据回填见 migration_wallpaper_ab.sql。
+-- ============================================================
+alter table user_settings    add column if not exists wallpaper_a text not null default '';
+alter table user_settings    add column if not exists wallpaper_b text not null default '';
+alter table setting_template add column if not exists wallpaper_a text not null default '';
+alter table setting_template add column if not exists wallpaper_b text not null default '';
 
 -- ============================================================
 -- 第 2 部分：函数与触发器

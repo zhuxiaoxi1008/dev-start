@@ -9,6 +9,7 @@ const defaultSettings: UserSettings = {
   wallpaper_a: '', wallpaper_b: '',
   dark_mode: false, sidebar_position: 'left',
   layout_config: { wallpaperB: '', widgets: [] },
+  widgets_config: {},
   created_at: '', updated_at: ''
 }
 

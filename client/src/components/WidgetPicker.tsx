@@ -1,0 +1,97 @@
+// client/src/components/WidgetPicker.tsx
+// Sidebar 加号 -> 小组件选择面板：列出注册表里的全部组件
+import React, { useState } from 'react'
+import { X, Heart, Clock, CalendarDays, CloudSun, ListTodo, NotebookPen, Flame, Image } from 'lucide-react'
+import type { WidgetType } from '@/types/widgets'
+import { listWidgets } from '@/widgets/registry'
+import '@/widgets/registerAll'
+
+const ICONS: Partial<Record<WidgetType, React.ComponentType<{ size?: number; className?: string }>>> = {
+  anniversary: Heart,
+  countdown: Clock,
+  calendar: CalendarDays,
+  weather: CloudSun,
+  todo: ListTodo,
+  notepad: NotebookPen,
+  hotsearch: Flame,
+  image_convert: Image,
+}
+
+const DESCRIPTIONS: Partial<Record<WidgetType, string>> = {
+  anniversary: '记录已经走过的天数',
+  countdown: '距离目标还有多少天',
+  calendar: '农历、节气与黄历',
+  weather: '实时天气与 7 天预报',
+  todo: '轻量待办清单',
+  notepad: '随手记点东西',
+  hotsearch: '各平台热榜入口',
+  image_convert: 'JPG / PNG / WEBP 互转',
+}
+
+interface Props {
+  open: boolean
+  onClose: () => void
+  onAdd: (type: WidgetType) => Promise<void>
+}
+
+export function WidgetPicker({ open, onClose, onAdd }: Props) {
+  const [busy, setBusy] = useState<WidgetType | null>(null)
+
+  if (!open) return null
+
+  const handleAdd = async (type: WidgetType) => {
+    if (busy) return
+    setBusy(type)
+    try {
+      await onAdd(type)
+      onClose()
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const widgets = listWidgets()
+
+  return (
+    <div className="fixed inset-0 z-[90] bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
+      <div
+        className="relative bg-white dark:bg-zinc-900 dark:text-zinc-100 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5"
+        onClick={e => e.stopPropagation()}
+      >
+        <button
+          className="absolute top-3 right-3 p-1 rounded-full hover:bg-black/10 dark:hover:bg-white/10"
+          onClick={onClose}
+          aria-label="关闭"
+        >
+          <X size={18} />
+        </button>
+        <h3 className="text-center text-base font-semibold mb-1">添加小组件</h3>
+        <p className="text-center text-xs opacity-60 mb-4">选择要放到桌面上的组件</p>
+
+        <div className="grid grid-cols-2 gap-3">
+          {widgets.map(({ type, label }) => {
+            const Icon = ICONS[type] ?? CalendarDays
+            return (
+              <button
+                key={type}
+                className="flex items-start gap-3 p-3 rounded-xl border border-zinc-200 dark:border-zinc-700 hover:bg-black/5 dark:hover:bg-white/10 text-left transition-colors disabled:opacity-50"
+                onClick={() => handleAdd(type)}
+                disabled={busy !== null}
+              >
+                <span className="w-9 h-9 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                  <Icon size={18} />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium">{label}</span>
+                  <span className="block text-[11px] opacity-60 truncate">
+                    {busy === type ? '添加中...' : (DESCRIPTIONS[type] ?? '')}
+                  </span>
+                </span>
+              </button>
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}

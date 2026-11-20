@@ -19,6 +19,7 @@ export type UserSettings = {
   wallpaper_b: string
   dark_mode: boolean
   sidebar_position: 'left' | 'right' | 'top' | 'bottom'
+  widgets_config: Record<string, unknown>
   created_at: string
   updated_at: string
 }
@@ -109,7 +110,7 @@ route.patch('/', async (c) => {
     'theme', 'layout_config', 'bg_type',
     'bg_solid_color', 'bg_gradient', 'bg_gradient_angle',
     'wallpaper_a', 'wallpaper_b',
-    'dark_mode', 'sidebar_position'
+    'dark_mode', 'sidebar_position', 'widgets_config'
   ]
   const payload: Record<string, unknown> = {}
   for (const key of allowedKeys) {

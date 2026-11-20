@@ -4,7 +4,7 @@ import { Home, Plus, Settings as SettingsIcon, Sun, Moon } from 'lucide-react';
 import { useConfig } from '@/context/UserConfigContext';
 import { cn } from '@/lib/utils'; // 假设你有这个工具类用于合并 class
 
-export function Sidebar() {
+export function Sidebar({ onAddClick }: { onAddClick?: () => void }) {
   const { settings, patchSetting } = useConfig();
   const pos = settings.sidebar_position || 'left';
 
@@ -19,7 +19,7 @@ export function Sidebar() {
       pos === 'left' || pos === 'right' ? 'flex-col h-auto' : 'flex-row w-auto'
     )}>
       <button className="p-2 hover:bg-white/20 rounded-lg transition"><Home size={20} /></button>
-      <button className="p-2 hover:bg-white/20 rounded-lg transition"><Plus size={20} /></button>
+      <button className="p-2 hover:bg-white/20 rounded-lg transition" onClick={onAddClick} title="添加小组件"><Plus size={20} /></button>
       <div className="flex-1" />
       <button onClick={toggleTheme} className="p-2 hover:bg-white/20 rounded-lg transition">
         {settings.dark_mode ? <Sun size={20} /> : <Moon size={20} />}

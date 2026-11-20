@@ -25,7 +25,49 @@ bookmarks.get('/', userIdMiddleware, async (c) => {
   return c.json({ data })
 })
 
-// 2. 更新书签位置（拖拽后保存）
+// 2. 新增书签/小组件（Sidebar 加号面板调用）
+bookmarks.post('/', userIdMiddleware, async (c) => {
+  const userId = c.get('userId')
+  const supabase = getSupabaseClient(c.env)
+  const body = await c.req.json<{
+    title?: string
+    url?: string
+    icon?: string
+    widget_type?: string
+    category_id?: string | null
+    w?: number
+    h?: number
+    x?: number
+    y?: number
+    sort_order?: number
+  }>()
+
+  const title = (body.title || '').trim()
+  if (!title) return c.json({ error: '标题不能为空' }, 400)
+
+  const { data, error } = await supabase
+    .from('bookmarks')
+    .insert({
+      user_id: userId,
+      title,
+      url: body.url ?? '',
+      icon: body.icon ?? '',
+      widget_type: body.widget_type ?? 'link',
+      category_id: body.category_id ?? null,
+      w: body.w ?? 2,
+      h: body.h ?? 2,
+      x: body.x ?? 0,
+      y: body.y ?? 0,
+      sort_order: body.sort_order ?? 0,
+    })
+    .select('*')
+    .single()
+
+  if (error) return c.json({ error: error.message }, 500)
+  return c.json(data, 201)
+})
+
+// 3. 更新书签位置（拖拽后保存）
 bookmarks.patch('/layout', userIdMiddleware, async (c) => {
   const userId = c.get('userId')
   const supabase = getSupabaseClient(c.env)

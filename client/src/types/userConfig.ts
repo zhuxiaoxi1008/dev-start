@@ -1,5 +1,7 @@
 // client/src/types/userConfig.ts
 // 背景类型：与 worker/src/routes/settings.ts 中的 BgType 保持一致
+import type { WidgetType, WidgetsConfigMap } from './widgets'
+
 export type BgType = 'gradient' | 'solid' | 'wallpaperA' | 'wallpaperB'
 
 export type UserSettings = {
@@ -16,6 +18,7 @@ export type UserSettings = {
   dark_mode: boolean
   sidebar_position: 'left' | 'right' | 'top' | 'bottom'
   layout_config: { wallpaperB?: string; widgets?: unknown[] }
+  widgets_config: WidgetsConfigMap
   created_at: string
   updated_at: string
 }
@@ -29,7 +32,7 @@ export type Bookmark = {
   title: string
   url: string
   icon: string
-  widget_type: 'link' | 'banner' // 组件类型
+  widget_type: WidgetType // 组件类型
   w: number
   h: number
   x: number
