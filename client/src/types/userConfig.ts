@@ -1,18 +1,26 @@
 // client/src/types/userConfig.ts
+// 背景类型：与 worker/src/routes/settings.ts 中的 BgType 保持一致
+export type BgType = 'gradient' | 'solid' | 'wallpaperA' | 'wallpaperB'
+
 export type UserSettings = {
-  // ... 保持你原来的设置不变
   id: string
   user_id: string
-  bg_type: 'gradient' | 'solid' | 'wallpaperA' | 'wallpaperB'
+  bg_type: BgType
   bg_solid_color: string
   bg_gradient: string
   bg_gradient_angle: number
+  // 壁纸A：预设/推荐壁纸；壁纸B：自定义图片地址
+  wallpaper_a: string
+  wallpaper_b: string
+  theme: string
   dark_mode: boolean
   sidebar_position: 'left' | 'right' | 'top' | 'bottom'
-  layout_config: { wallpaperB: string }
+  layout_config: { wallpaperB?: string; widgets?: unknown[] }
   created_at: string
   updated_at: string
 }
+
+export type UserSettingsPatch = Partial<Omit<UserSettings, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
 
 export type Bookmark = {
   id: string

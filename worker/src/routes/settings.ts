@@ -3,16 +3,20 @@ import { getSupabaseClient, EnvBindings } from '../db/supabase'
 
 const route = new Hono<{ Bindings: EnvBindings }>()
 
+// 背景类型：与 client/src/types/userConfig.ts 中的 BgType 保持一致
+export type BgType = 'gradient' | 'solid' | 'wallpaperA' | 'wallpaperB'
+
 export type UserSettings = {
   id: string
   user_id: string
-  wallpaper: string
   theme: string
-  layout_config: { wallpaperB: string }
-  bg_type: 'gradient' | 'solid' | 'wallpaperA' | 'bg_gradient'
+  layout_config: { wallpaperB?: string }
+  bg_type: BgType
   bg_solid_color: string
   bg_gradient: string
   bg_gradient_angle: number
+  wallpaper_a: string
+  wallpaper_b: string
   dark_mode: boolean
   sidebar_position: 'left' | 'right' | 'top' | 'bottom'
   created_at: string
@@ -20,6 +24,8 @@ export type UserSettings = {
 }
 
 type UserSettingsPatch = Partial<Omit<UserSettings, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
+
+const VALID_BG_TYPES: BgType[] = ['gradient', 'solid', 'wallpaperA', 'wallpaperB']
 
 route.get('/', async (c) => {
   const supabase = getSupabaseClient(c.env)
@@ -55,13 +61,14 @@ route.get('/', async (c) => {
 
   const newUserRecord = {
     user_id: userId,
-    wallpaper: templateRow.wallpaper,
     theme: templateRow.theme,
     layout_config: templateRow.layout_config,
     bg_type: templateRow.bg_type,
     bg_solid_color: templateRow.bg_solid_color,
     bg_gradient: templateRow.bg_gradient,
     bg_gradient_angle: templateRow.bg_gradient_angle,
+    wallpaper_a: templateRow.wallpaper_a ?? '',
+    wallpaper_b: templateRow.wallpaper_b ?? '',
     dark_mode: false,
     sidebar_position: 'left'
   }
@@ -87,24 +94,8 @@ route.get('/', async (c) => {
     return c.json({ error: '新建用户配置失败', detail: insertErr.message }, 500)
   }
 
-  const defaultBookmarks = templateRow.default_bookmarks || []
-  if (defaultBookmarks.length > 0) {
-    const bookmarkInserts = defaultBookmarks.map((bm: any) => ({
-      ...bm,
-      user_id: userId,
-    }))
-
-    const { error: bookmarksErr } = await supabase
-      .from('bookmarks')
-      .insert(bookmarkInserts)
-
-    if (bookmarksErr) {
-      console.error('⚠️ 插入默认书签失败（不影响主流程）:', bookmarksErr)
-    } else {
-      console.log(`✅ 已为用户 ${userId} 初始化 ${defaultBookmarks.length} 个默认书签`)
-    }
-  }
-
+  // 默认书签由数据库触发器 trigger_insert_default_bookmarks 在插入 user_settings 时自动写入，
+  // 此处不再重复插入，避免新用户拿到两套默认书签。
   console.log(`[GET /api/settings] 用户配置创建成功`)
   return c.json(newRow)
 })
@@ -115,8 +106,9 @@ route.patch('/', async (c) => {
   const body = await c.req.json<UserSettingsPatch>()
 
   const allowedKeys: (keyof UserSettingsPatch)[] = [
-    'wallpaper', 'theme', 'layout_config', 'bg_type',
+    'theme', 'layout_config', 'bg_type',
     'bg_solid_color', 'bg_gradient', 'bg_gradient_angle',
+    'wallpaper_a', 'wallpaper_b',
     'dark_mode', 'sidebar_position'
   ]
   const payload: Record<string, unknown> = {}
@@ -126,6 +118,11 @@ route.patch('/', async (c) => {
     }
   }
   if (Object.keys(payload).length === 0) return c.json({ error: '没有合法更新字段' }, 400)
+
+  // 只接受四种合法背景类型，避免脏数据写入后前端渲染不出背景
+  if (payload.bg_type && !VALID_BG_TYPES.includes(payload.bg_type as BgType)) {
+    return c.json({ error: 'bg_type 取值非法', detail: String(payload.bg_type) }, 400)
+  }
 
   const { data, error } = await supabase
     .from('user_settings')

@@ -3,9 +3,10 @@ import { useUserConfig } from '../hooks/useUserConfig'
 import type { UserSettings, UserSettingsPatch } from '../types/userConfig'
 
 const defaultSettings: UserSettings = {
-  id: '', user_id: '', wallpaper: '', theme: 'dark',
+  id: '', user_id: '', theme: 'dark',
   bg_type: 'gradient', bg_solid_color: '#eef2ff',
   bg_gradient: '#a8edea,#fed6e3', bg_gradient_angle: 135,
+  wallpaper_a: '', wallpaper_b: '',
   dark_mode: false, sidebar_position: 'left',
   layout_config: { wallpaperB: '', widgets: [] },
   created_at: '', updated_at: ''
