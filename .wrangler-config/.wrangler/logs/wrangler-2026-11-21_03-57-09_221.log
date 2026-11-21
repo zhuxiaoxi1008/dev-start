@@ -6,3 +6,51 @@
 --- 2026-11-21T04:17:06.058Z debug
 [InspectorProxyWorker] RUNTIME INCOMING MESSAGE { id: 100000120, result: { id: '925bb3f70f05a69f' } }
 ---
+
+--- 2026-11-21T04:17:16.063Z debug
+[InspectorProxyWorker] SEND TO RUNTIME {"method":"Runtime.getIsolateId","id":100000121}
+---
+
+--- 2026-11-21T04:17:16.072Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE { id: 100000121, result: { id: '925bb3f70f05a69f' } }
+---
+
+--- 2026-11-21T04:17:26.076Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE { id: 100000122, result: { id: '925bb3f70f05a69f' } }
+---
+
+--- 2026-11-21T04:17:26.079Z debug
+[InspectorProxyWorker] SEND TO RUNTIME {"method":"Runtime.getIsolateId","id":100000122}
+---
+
+--- 2026-11-21T04:17:36.084Z debug
+[InspectorProxyWorker] SEND TO RUNTIME {"method":"Runtime.getIsolateId","id":100000123}
+---
+
+--- 2026-11-21T04:17:36.090Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE { id: 100000123, result: { id: '925bb3f70f05a69f' } }
+---
+
+--- 2026-11-21T04:17:46.093Z debug
+[InspectorProxyWorker] SEND TO RUNTIME {"method":"Runtime.getIsolateId","id":100000124}
+---
+
+--- 2026-11-21T04:17:46.094Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE { id: 100000124, result: { id: '925bb3f70f05a69f' } }
+---
+
+--- 2026-11-21T04:17:56.114Z debug
+[InspectorProxyWorker] SEND TO RUNTIME {"method":"Runtime.getIsolateId","id":100000125}
+---
+
+--- 2026-11-21T04:17:56.115Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE { id: 100000125, result: { id: '925bb3f70f05a69f' } }
+---
+
+--- 2026-11-21T04:18:06.119Z debug
+[InspectorProxyWorker] SEND TO RUNTIME {"method":"Runtime.getIsolateId","id":100000126}
+---
+
+--- 2026-11-21T04:18:06.123Z debug
+[InspectorProxyWorker] RUNTIME INCOMING MESSAGE { id: 100000126, result: { id: '925bb3f70f05a69f' } }
+---
