@@ -1,0 +1,6 @@
+{
+  "debugPortAddress": "127.0.0.1:60248",
+  "defaultEntrypointService": "assets:rpc-proxy:devstart-worker",
+  "userWorkerService": "core:user:devstart-worker",
+  "instanceId": "4d300b36-06ca-4534-9351-dae3238d794b"
+}
