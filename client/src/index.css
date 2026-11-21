@@ -130,11 +130,22 @@
     @apply font-sans;
     /* 与 body 一起锁定：页面本身不产生滚动条，仅内容区内部滚动（双保险，避免任一条失效出现外滚动条） */
     overflow: hidden;
+    /* 移动端禁止下拉刷新/橡皮筋导致的整页位移，滚动交给内部容器 */
+    overscroll-behavior: none;
+    /* 去掉 iOS 点击时的灰色高亮块，改由组件自身的 :active 反馈 */
+    -webkit-tap-highlight-color: transparent;
+    /* 移动端旋转到横屏时按真实可视高度排版 */
+    -webkit-text-size-adjust: 100%;
   }
   body {
     @apply bg-background text-foreground;
     /* 首页固定为单页视口高度，页面本身不产生滚动条，仅内容区内部滚动 */
     overflow: hidden;
+    overscroll-behavior: none;
+  }
+  /* 长按卡片/链接时不弹出系统选词与上下文菜单（自定义菜单接管） */
+  button, a, .no-callout {
+    -webkit-touch-callout: none;
   }
 }
 
@@ -150,5 +161,40 @@
   }
   .no-scrollbar::-webkit-scrollbar {
     display: none;
+  }
+  /* 刘海屏/圆角屏安全区内边距 */
+  .pb-safe {
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.5rem);
+  }
+  .pt-safe {
+    padding-top: calc(env(safe-area-inset-top, 0px) + 0.5rem);
+  }
+  .px-safe {
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+}
+
+/* 触屏设备（手指输入）：移除依赖 hover 的显示逻辑，统一可点尺寸 */
+@media (pointer: coarse) {
+  .touch-target {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  /* 桌面端的 cursor 语义在触屏无意义 */
+  .cursor-grab,
+  .active\:cursor-grabbing:active {
+    cursor: auto;
+  }
+  /* 触屏上 hover 态会"粘住"，取消卡片悬停变色，改用 :active */
+  .hover\:bg-white\/60:hover {
+    background-color: inherit;
+  }
+  /* 可点元素统一按下反馈 */
+  .tap-scale {
+    transition: transform 0.12s ease;
+  }
+  .tap-scale:active {
+    transform: scale(0.97);
   }
 }

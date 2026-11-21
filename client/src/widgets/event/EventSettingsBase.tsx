@@ -1,8 +1,8 @@
 // client/src/widgets/event/EventSettingsBase.tsx
 // 纪念日/倒计时共用设置弹窗：左表单右实时预览（按设计图）
-import React, { useState } from 'react'
+import { useState } from 'react'
 import type { EventWidgetConfig } from '@/types/widgets'
-import { BG_PRESETS, resolveBgImage } from '../bgAssets'
+import { BG_PRESETS } from '../bgAssets'
 import { EventCardBase, formatDateCn } from './EventCardBase'
 
 const FONT_COLORS = ['#000000', '#ffffff', '#7c6fd0', '#3b6fd4', '#29a3e3', '#2fbf9b', '#35c4d7', '#d9a94e']
@@ -23,7 +23,7 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
   const patch = (p: Partial<EventWidgetConfig>) => setCfg(prev => ({ ...prev, ...p }))
 
   return (
-    <div className="p-5">
+    <div className="p-4 sm:p-5">
       <h3 className="text-center text-base font-semibold mb-4">{title}</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* 左侧表单 */}
@@ -31,7 +31,7 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
           <div>
             <label className="block mb-1 font-medium">事件名称</label>
             <input
-              className="w-full rounded-lg border border-input bg-background/60 px-3 py-2 placeholder:text-muted-foreground"
+              className="w-full min-h-11 rounded-lg border border-input bg-background/60 px-3 py-2 text-base sm:text-sm placeholder:text-muted-foreground"
               value={cfg.title}
               onChange={e => patch({ title: e.target.value })}
               placeholder="请输入事件名称"
@@ -42,13 +42,13 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
             <div className="flex gap-2">
               <input
                 type="date"
-                className="flex-1 rounded-lg border border-input bg-background/60 px-3 py-2"
+                className="flex-1 min-w-0 min-h-11 rounded-lg border border-input bg-background/60 px-3 py-2 text-base sm:text-sm"
                 value={cfg.date}
                 onChange={e => patch({ date: e.target.value })}
               />
               {showRepeat && (
                 <select
-                  className="rounded-lg border border-input bg-background/60 px-2 py-2"
+                  className="min-h-11 rounded-lg border border-input bg-background/60 px-2 py-2 text-base sm:text-sm"
                   value={cfg.repeat ?? 'none'}
                   onChange={e => patch({ repeat: e.target.value as 'none' | 'yearly' })}
                 >
@@ -64,7 +64,7 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
               {FONT_COLORS.map(c => (
                 <button
                   key={c}
-                  className="w-7 h-7 rounded border border-border"
+                  className="w-9 h-9 rounded border border-border"
                   style={{ background: c }}
                   onClick={() => patch({ fontColor: c })}
                   aria-label={c}
@@ -74,7 +74,7 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
               ))}
               <input
                 type="color"
-                className="w-7 h-7 rounded cursor-pointer"
+                className="w-9 h-9 rounded cursor-pointer"
                 value={cfg.fontColor}
                 onChange={e => patch({ fontColor: e.target.value })}
                 title="自定义颜色"
@@ -87,7 +87,7 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
               {(['image', 'color'] as const).map(t => (
                 <button
                   key={t}
-                  className={`flex-1 py-1.5 ${cfg.bgType === t ? 'bg-accent text-accent-foreground font-medium' : 'text-muted-foreground hover:bg-accent/60'}`}
+                  className={`flex-1 min-h-11 ${cfg.bgType === t ? 'bg-accent text-accent-foreground font-medium' : 'text-muted-foreground active:bg-accent/60'}`}
                   onClick={() => patch({ bgType: t })}
                 >
                   {t === 'image' ? '图片' : '颜色'}
@@ -109,14 +109,14 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
             ) : (
               <input
                 type="color"
-                className="w-full h-9 rounded cursor-pointer"
+                className="w-full h-11 rounded cursor-pointer"
                 value={cfg.bgColor || '#3b82f6'}
                 onChange={e => patch({ bgColor: e.target.value })}
               />
             )}
             {cfg.bgType === 'image' && (
               <input
-                className="w-full mt-2 rounded-lg border border-input bg-background/60 px-3 py-1.5 text-xs placeholder:text-muted-foreground"
+                className="w-full min-h-11 mt-2 rounded-lg border border-input bg-background/60 px-3 py-1.5 text-base sm:text-xs placeholder:text-muted-foreground"
                 placeholder="或粘贴自定义图片 URL"
                 value={/^https?:/.test(cfg.bgImage) ? cfg.bgImage : ''}
                 onChange={e => patch({ bgImage: e.target.value })}
@@ -127,21 +127,21 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
             <label className="block mb-1 font-medium">背景遮罩</label>
             <input
               type="range" min={0} max={0.8} step={0.05}
-              className="w-full"
+              className="w-full h-11"
               value={cfg.overlay ?? 0}
               onChange={e => patch({ overlay: Number(e.target.value) })}
             />
           </div>
           <button
-            className="w-full py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/80"
+            className="w-full min-h-11 py-2 rounded-lg bg-primary text-primary-foreground font-medium active:bg-primary/80 sm:hover:bg-primary/80"
             onClick={() => onSave(cfg)}
           >
             完成
           </button>
         </div>
         {/* 右侧实时预览 */}
-        <div className="flex flex-col items-center justify-center gap-3">
-          <div className="w-64 h-36">
+        <div className="flex flex-col items-center justify-center gap-3 order-first md:order-none">
+          <div className="w-full max-w-64 h-36">
             <EventCardBase
               config={cfg}
               days={daysOf(cfg)}
@@ -151,7 +151,7 @@ export function EventSettingsBase({ title, initial, dateLabel, showRepeat, daysO
             />
           </div>
           <div className="text-xs text-muted-foreground">{title} · {formatDateCn(cfg.date)}</div>
-          <button className="text-xs text-muted-foreground underline hover:text-foreground" onClick={onClose}>取消</button>
+          <button className="min-h-11 px-3 text-xs text-muted-foreground underline active:text-foreground sm:hover:text-foreground" onClick={onClose}>取消</button>
         </div>
       </div>
     </div>

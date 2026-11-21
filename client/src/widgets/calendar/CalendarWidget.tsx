@@ -84,7 +84,7 @@ function MonthGrid({ year, month, weekStart, selected, onSelect }: {
       <div className="grid grid-cols-7 mb-1 text-center text-xs text-muted-foreground">
         {weekHeaders.map(w => <div key={w} className="py-1">{w}</div>)}
       </div>
-      <div className="grid grid-cols-7 gap-1">
+      <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
         {cells.map(({ date, inMonth }, idx) => {
           const solar = Solar.fromDate(date)
           const isToday = date.toDateString() === today.toDateString()
@@ -96,17 +96,17 @@ function MonthGrid({ year, month, weekStart, selected, onSelect }: {
               key={idx}
               onClick={() => onSelect(date)}
               className={[
-                'flex flex-col items-center justify-center rounded-lg py-1.5 leading-tight transition-colors',
+                'flex flex-col items-center justify-center rounded-lg min-h-10 sm:min-h-11 px-0.5 leading-none transition-colors',
                 isSelected ? 'bg-primary text-primary-foreground'
                   : isToday ? 'bg-accent text-accent-foreground ring-1 ring-foreground/20'
-                    : 'hover:bg-accent',
+                    : 'active:bg-accent sm:hover:bg-accent',
                 !inMonth ? 'opacity-35' : '',
               ].join(' ')}
             >
               <span className={`text-sm font-medium ${isWeekend && !isSelected ? 'text-red-500' : ''}`}>
                 {date.getDate()}
               </span>
-              <span className={`text-[10px] truncate max-w-full ${isSelected ? 'opacity-80' : isEvent ? 'text-red-500' : 'text-muted-foreground'}`}>
+              <span className={`text-[10px] leading-none mt-0.5 truncate max-w-full ${isSelected ? 'opacity-80' : isEvent ? 'text-red-500' : 'text-muted-foreground'}`}>
                 {label}
               </span>
             </button>
@@ -222,12 +222,12 @@ export const CalendarSettings: React.FC<WidgetSettingsProps> = ({ config, onClos
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <div>
           <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <button className="px-2 py-1 rounded hover:bg-accent" onClick={() => shiftMonth(-1)}>‹</button>
+            <div className="flex items-center gap-1.5">
+              <button className="touch-target flex items-center justify-center px-2 rounded active:bg-accent sm:hover:bg-accent" onClick={() => shiftMonth(-1)} aria-label="上个月">‹</button>
               <span className="text-sm font-medium">{monthTitle}</span>
-              <button className="px-2 py-1 rounded hover:bg-accent" onClick={() => shiftMonth(1)}>›</button>
+              <button className="touch-target flex items-center justify-center px-2 rounded active:bg-accent sm:hover:bg-accent" onClick={() => shiftMonth(1)} aria-label="下个月">›</button>
             </div>
-            <button className="text-xs px-2 py-1 rounded border border-border text-muted-foreground hover:bg-accent" onClick={backToToday}>
+            <button className="touch-target flex items-center justify-center text-xs px-2 rounded border border-border text-muted-foreground active:bg-accent sm:hover:bg-accent" onClick={backToToday}>
               今天
             </button>
           </div>

@@ -2,7 +2,7 @@
 // 倒计时：剩余天数 = 目标日 - 今天；repeat=yearly 时取下一个周年日
 import React from 'react'
 import type { WidgetCardProps, WidgetSettingsProps, EventWidgetConfig } from '@/types/widgets'
-import { EventCardBase, daysBetween } from './EventCardBase'
+import { EventCardBase } from './EventCardBase'
 import { EventSettingsBase } from './EventSettingsBase'
 import { BG_PRESETS } from '../bgAssets'
 

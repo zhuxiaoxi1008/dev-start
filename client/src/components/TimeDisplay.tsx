@@ -27,13 +27,13 @@ export function TimeDisplay() {
   return (
     <div className="text-center mt-6">
       <div
-        className="text-6xl mxs:text-5xl tabular-nums text-white font-medium leading-[80px]"
+        className="text-4xl sm:text-5xl md:text-6xl tabular-nums text-white font-medium leading-tight"
         style={{ textShadow: "0 2px 6px rgba(0,0,0,.16)" }}
       >
         {hh}:{mm}:{ss}
       </div>
       <div
-        className="text-lg"
+        className="text-sm sm:text-lg"
         style={{
           color: "#ffffff",
           opacity: 0.85,

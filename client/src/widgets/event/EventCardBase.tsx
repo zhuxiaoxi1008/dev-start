@@ -40,7 +40,7 @@ export function EventCardBase({ config, days, daysPrefix, isDragging, onOpen }: 
   const bgUrl = config.bgType === 'image' ? resolveBgImage(config.bgImage) : ''
   return (
     <div
-      className="relative w-full h-full rounded-xl overflow-hidden shadow-sm cursor-pointer select-none"
+      className="relative w-full h-full rounded-xl overflow-hidden shadow-sm cursor-pointer select-none tap-scale"
       style={{
         color: config.fontColor || '#fff',
         background: config.bgType === 'color' ? (config.bgColor || '#3b82f6') : undefined,

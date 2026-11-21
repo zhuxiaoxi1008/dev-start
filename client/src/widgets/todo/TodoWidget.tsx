@@ -133,14 +133,14 @@ export const TodoSettings: React.FC<WidgetSettingsProps> = ({ bookmark, onClose 
 
       <div className="flex gap-2 mb-3">
         <input
-          className="flex-1 rounded-lg border border-input bg-background/60 px-3 py-2 text-sm placeholder:text-muted-foreground"
+          className="flex-1 min-w-0 rounded-lg border border-input bg-background/60 px-3 py-2 text-base sm:text-sm placeholder:text-muted-foreground"
           placeholder="添加待办，回车确认"
           value={text}
           onChange={e => setText(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') add() }}
         />
         <button
-          className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm inline-flex items-center gap-1 hover:bg-primary/80 disabled:opacity-50"
+          className="min-h-11 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm inline-flex items-center gap-1 active:bg-primary/80 sm:hover:bg-primary/80 disabled:opacity-50 shrink-0"
           onClick={add}
           disabled={busy || !text.trim()}
         >
@@ -156,20 +156,20 @@ export const TodoSettings: React.FC<WidgetSettingsProps> = ({ bookmark, onClose 
           <div className="py-8 text-center text-xs text-muted-foreground">暂无待办</div>
         )}
         {items.map(t => (
-          <div key={t.id} className="flex items-center gap-2 px-3 py-2 text-sm group">
+          <div key={t.id} className="flex items-center gap-2 px-3 py-2 text-sm group min-h-11">
             <input
               type="checkbox"
-              className="accent-primary"
+              className="accent-primary w-5 h-5 shrink-0"
               checked={t.done}
               onChange={() => toggle(t)}
             />
             <span className={`flex-1 ${t.done ? 'line-through text-muted-foreground' : ''}`}>{t.content}</span>
             <button
-              className="opacity-0 group-hover:opacity-60 hover:!opacity-100 text-destructive"
+              className="touch-target flex items-center justify-center text-destructive sm:opacity-0 sm:group-hover:opacity-60 sm:hover:!opacity-100"
               onClick={() => remove(t)}
               aria-label="删除"
             >
-              <Trash2 size={14} />
+              <Trash2 size={16} />
             </button>
           </div>
         ))}

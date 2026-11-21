@@ -14,6 +14,9 @@ import { Responsive, type Layout } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 import { WidgetActionProvider, type WidgetActions } from '@/widgets/WidgetActionContext'
 import { WidgetContextMenu } from '@/widgets/WidgetContextMenu'
+import { MobileWidgetCell, MOBILE_COLS, MOBILE_ROW_H } from '@/components/MobileWidgetCell'
+import { useIsMobile } from '@/hooks/useIsMobile'
+import { useElementWidth } from '@/hooks/useElementWidth'
 
 const searchEngines = [
   { name: 'Google', icon: 'https://www.google.com/favicon.ico', url: 'https://www.google.com/search?q=' },
@@ -35,7 +38,11 @@ function HomePage() {
   // 👉 新增拖拽标记
   const [isDragging, setIsDragging] = useState(false)
 
-  // 右键菜单状态：哪个小组件、在哪个坐标弹出
+  const isMobile = useIsMobile()
+  // 桌面端网格宽度：实测容器宽度，替代原硬编码 1152
+  const { ref: gridWrapRef, width: gridWidth } = useElementWidth<HTMLDivElement>()
+
+  // 右键（桌面）/ 长按（触屏）菜单状态
   const [menu, setMenu] = useState<{ open: boolean; x: number; y: number; bookmark: Bookmark | null }>({
     open: false, x: 0, y: 0, bookmark: null,
   })
@@ -120,7 +127,7 @@ function HomePage() {
     }))
   }, [bookmarks])
 
-  const onLayoutChange = async (currentLayout: Layout[]) => {
+  const onLayoutChange = async (currentLayout: Layout) => {
     const updatedBookmarks = bookmarks.map(bm => {
       const layoutItem = currentLayout.find(l => l.i === bm.id)
       if (layoutItem) {
@@ -177,73 +184,100 @@ function HomePage() {
     }
   }
 
+  // 移动端：长按卡片弹出操作表；桌面端：右键弹出浮层
+  const openMenuAt = (bookmark: Bookmark, pos: { x: number; y: number }) => {
+    setMenu({ open: true, x: pos.x, y: pos.y, bookmark })
+  }
+
   if (loading || bookmarksLoading) {
-    return <div className="h-screen flex items-center justify-center text-foreground">加载配置...</div>
+    return <div className="h-[100dvh] flex items-center justify-center text-foreground">加载配置...</div>
   }
 
   return (
     <WidgetActionProvider actions={actions}>
-      <div className="h-screen relative overflow-hidden flex flex-col">
+      <div className="h-[100dvh] relative overflow-hidden flex flex-col">
         <BackgroundLayer />
-      <Sidebar onAddClick={() => setPickerOpen(true)} />
+        <Sidebar onAddClick={() => setPickerOpen(true)} />
 
-      <div className="relative z-20 flex flex-col items-center pt-4 px-4 shrink-0 pointer-events-none">
-        <div className="pointer-events-auto flex flex-col items-center w-full">
-          <TimeDisplay />
-          <SearchBar
-            engines={searchEngines}
-            selectedEngine={selectedEngine}
-            keyword={keyword}
-            onChangeKeyword={setKeyword}
-            onChangeEngine={setSelectedEngine}
-            onSearch={handleSearch}
-            onOpenSetting={() => setSettingOpen(true)}
-          />
+        <div className="relative z-20 flex flex-col items-center pt-4 px-3 sm:px-4 shrink-0 pointer-events-none">
+          <div className="pointer-events-auto flex flex-col items-center w-full">
+            <TimeDisplay />
+            <SearchBar
+              engines={searchEngines}
+              selectedEngine={selectedEngine}
+              keyword={keyword}
+              onChangeKeyword={setKeyword}
+              onChangeEngine={setSelectedEngine}
+              onSearch={handleSearch}
+              onOpenSetting={() => setSettingOpen(true)}
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="relative z-10 flex-1 min-h-0 overflow-y-auto no-scrollbar mt-8 pb-32">
-        <div className="max-w-6xl mx-auto px-4 relative">
-          <Responsive
-            className="layout"
-            layouts={{ lg: layouts }}
-            breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-            cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-            rowHeight={80}
-            width={1152}
-            onLayoutChange={onLayoutChange}
-            draggableCancel=".no-drag"
-            isBounded={true}
-            resizeConfig={{ enabled: false }}
-            compactType="vertical" 
-            preventCollision={false} 
-            margin={[16, 16]} 
-            containerPadding={[0, 0]} 
-            useCSSTransforms={true} 
-            transitionDuration={200}
-            // 👉 拖拽事件
-            onDragStart={() => setIsDragging(true)}
-            onDragStop={() => {
-              // 延迟重置，等click事件跑完
-              setTimeout(() => setIsDragging(false), 50)
-            }}
-          >
-            {bookmarks.map((widget) => (
+        <div className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain no-scrollbar mt-4 sm:mt-8 pb-24 sm:pb-32">
+          {isMobile ? (
+            /* 移动端：CSS Grid 流式布局，不启用拖拽，避免与页面滚动抢手势 */
+            <div className="max-w-6xl mx-auto px-3">
               <div
-                key={widget.id}
-                className="group relative cursor-grab active:cursor-grabbing"
-                onContextMenu={(e) => {
-                  e.preventDefault()
-                  setMenu({ open: true, x: e.clientX, y: e.clientY, bookmark: widget })
+                className="grid gap-3"
+                style={{
+                  gridTemplateColumns: `repeat(${MOBILE_COLS}, minmax(0, 1fr))`,
+                  gridAutoRows: `${MOBILE_ROW_H}px`,
                 }}
               >
-                {/* 传给子组件 */}
-                <WidgetRenderer bookmark={widget} isDragging={isDragging} />
+                {bookmarks.map((widget) => (
+                  <MobileWidgetCell key={widget.id} bookmark={widget} onLongPress={openMenuAt} />
+                ))}
               </div>
-            ))}
-          </Responsive>
+            </div>
+          ) : (
+            /* 桌面端：react-grid-layout，宽度取内层内容区实测值（不含 px 内边距） */
+            <div className="max-w-6xl mx-auto px-4 relative">
+              <div ref={gridWrapRef}>
+                {gridWidth > 0 && (
+                  <Responsive
+                    className="layout"
+                    layouts={{ lg: layouts }}
+                    breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+                    cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+                    rowHeight={80}
+                    width={gridWidth}
+                    onLayoutChange={onLayoutChange}
+                    draggableCancel=".no-drag"
+                    isBounded={true}
+                    resizeConfig={{ enabled: false }}
+                    compactType="vertical" 
+                    preventCollision={false} 
+                    margin={[16, 16]} 
+                    containerPadding={[0, 0]} 
+                    useCSSTransforms={true} 
+                    transitionDuration={200}
+                    // 👉 拖拽事件
+                    onDragStart={() => setIsDragging(true)}
+                    onDragStop={() => {
+                      // 延迟重置，等click事件跑完
+                      setTimeout(() => setIsDragging(false), 50)
+                    }}
+                  >
+                    {bookmarks.map((widget) => (
+                      <div
+                        key={widget.id}
+                        className="group relative cursor-grab active:cursor-grabbing"
+                        onContextMenu={(e) => {
+                          e.preventDefault()
+                          openMenuAt(widget, { x: e.clientX, y: e.clientY })
+                        }}
+                      >
+                        {/* 传给子组件 */}
+                        <WidgetRenderer bookmark={widget} isDragging={isDragging} />
+                      </div>
+                    ))}
+                  </Responsive>
+                )}
+              </div>
+            </div>
+          )}
         </div>
-      </div>
 
         <SettingModal open={settingOpen} onClose={() => setSettingOpen(false)} />
         <WidgetPicker open={pickerOpen} onClose={() => setPickerOpen(false)} onAdd={addWidget} />

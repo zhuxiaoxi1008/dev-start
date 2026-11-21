@@ -1,5 +1,7 @@
 // client/src/widgets/WidgetContextMenu.tsx
-// 小组件右键菜单：按类型展示信息 + 通用动作（打开/设置）+ 底部"移除组件"
+// 小组件操作菜单
+// 桌面：右键在光标处弹出浮层
+// 移动端：长按从底部弹出操作表（全宽、48px 触点）
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Settings, Trash2, ExternalLink } from 'lucide-react'
@@ -8,6 +10,7 @@ import { getWidget } from './registry'
 import { getContextMenuContent } from './contextMenu'
 import { useWidgetActions } from './WidgetActionContext'
 import type { WidgetType } from '@/types/widgets'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 interface Props {
   open: boolean
@@ -19,6 +22,7 @@ interface Props {
 
 export function WidgetContextMenu({ open, x, y, bookmark, onClose }: Props) {
   const actions = useWidgetActions()
+  const isMobile = useIsMobile()
   const ref = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState({ x, y })
   const [confirmRemove, setConfirmRemove] = useState(false)
@@ -28,9 +32,9 @@ export function WidgetContextMenu({ open, x, y, bookmark, onClose }: Props) {
     if (!open) setConfirmRemove(false)
   }, [open, bookmark?.id])
 
-  // 定位 + 视口内自适应（内容异步加载高度变化时通过 ResizeObserver 重新钳制）
+  // 桌面浮层定位 + 视口内自适应（内容异步加载高度变化时通过 ResizeObserver 重新钳制）
   useLayoutEffect(() => {
-    if (!open || !ref.current) return
+    if (!open || !ref.current || isMobile) return
     const clamp = () => {
       const el = ref.current
       if (!el) return
@@ -45,7 +49,7 @@ export function WidgetContextMenu({ open, x, y, bookmark, onClose }: Props) {
     const ro = new ResizeObserver(clamp)
     ro.observe(ref.current)
     return () => ro.disconnect()
-  }, [open, x, y])
+  }, [open, x, y, isMobile])
 
   // 外部点击 / Esc / 滚动 / 缩放 关闭
   useEffect(() => {
@@ -56,15 +60,21 @@ export function WidgetContextMenu({ open, x, y, bookmark, onClose }: Props) {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     const onScroll = () => onClose()
     const onResize = () => onClose()
+    // 触摸：点击浮层外部区域关闭（用 touchstart 以便移动端即时响应）
+    const onTouch = (e: TouchEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
+    }
     window.addEventListener('mousedown', onDown, true)
     window.addEventListener('keydown', onKey)
     window.addEventListener('scroll', onScroll, true)
     window.addEventListener('resize', onResize)
+    window.addEventListener('touchstart', onTouch, true)
     return () => {
       window.removeEventListener('mousedown', onDown, true)
       window.removeEventListener('keydown', onKey)
       window.removeEventListener('scroll', onScroll, true)
       window.removeEventListener('resize', onResize)
+      window.removeEventListener('touchstart', onTouch, true)
     }
   }, [open, onClose])
 
@@ -94,8 +104,60 @@ export function WidgetContextMenu({ open, x, y, bookmark, onClose }: Props) {
     onClose()
   }
 
-  // 通过 portal 渲染到 body：脱离任何祖先的 overflow / transform / contain 上下文，
-  // 保证菜单始终相对视口定位、不会撑出文档滚动条，层级也最稳
+  // ── 移动端：底部操作表 ──
+  if (isMobile) {
+    return createPortal(
+      <div className="fixed inset-0 z-[200] bg-black/40 flex items-end" onClick={onClose}>
+        <div
+          ref={ref}
+          className="w-full max-h-[80dvh] overflow-y-auto overscroll-contain bg-popover text-popover-foreground rounded-t-2xl shadow-xl pb-safe"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="pt-2 pb-1 text-center">
+            <div className="mx-auto w-10 h-1 rounded-full bg-foreground/20" />
+          </div>
+          <div className="px-4 py-2">
+            <div className="text-base font-medium truncate">{bookmark.title || '未命名组件'}</div>
+            <div className="text-xs text-muted-foreground">{def?.label ?? '快捷方式'}</div>
+          </div>
+
+          {Content && (
+            <div className="px-4 py-2 border-t border-border">
+              <Content bookmark={bookmark} type={type} />
+            </div>
+          )}
+
+          <div className="border-t border-border">
+            <button
+              className="w-full min-h-12 flex items-center gap-3 px-4 text-sm active:bg-accent"
+              onClick={doAction}
+            >
+              {isLink ? <ExternalLink size={18} /> : <Settings size={18} />}
+              {isLink ? '打开链接' : '设置'}
+            </button>
+            <button
+              className={`w-full min-h-12 flex items-center gap-3 px-4 text-sm border-t border-border ${
+                confirmRemove ? 'bg-destructive text-destructive-foreground' : 'text-destructive active:bg-destructive/10'
+              }`}
+              onClick={doRemove}
+            >
+              <Trash2 size={18} />
+              {confirmRemove ? '确认移除？' : '移除组件'}
+            </button>
+          </div>
+          <button
+            className="w-full min-h-12 px-4 text-sm text-muted-foreground border-t border-border active:bg-accent"
+            onClick={onClose}
+          >
+            取消
+          </button>
+        </div>
+      </div>,
+      document.body
+    )
+  }
+
+  // ── 桌面：光标处浮层（portal 渲染到 body，脱离祖先 overflow/transform 上下文）──
   return createPortal(
     <div
       ref={ref}
@@ -133,6 +195,6 @@ export function WidgetContextMenu({ open, x, y, bookmark, onClose }: Props) {
         {confirmRemove ? '确认移除？' : '移除组件'}
       </button>
     </div>,
-    document.body,
+    document.body
   )
 }

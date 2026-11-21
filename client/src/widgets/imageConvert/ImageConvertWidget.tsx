@@ -115,7 +115,7 @@ export function ImageConvertSettings({ onClose }: WidgetSettingsProps) {
             onChange={e => pickFile(e.target.files?.[0])}
           />
           <button
-            className="w-full h-32 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 hover:border-foreground/40"
+            className="w-full h-32 rounded-xl border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 active:border-foreground/40 sm:hover:border-foreground/40"
             onClick={() => inputRef.current?.click()}
           >
             {src ? (
@@ -135,7 +135,7 @@ export function ImageConvertSettings({ onClose }: WidgetSettingsProps) {
               {FORMAT_OPTIONS.map(f => (
                 <button
                   key={f.value}
-                  className={`py-2 rounded-lg border text-sm ${target === f.value ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground hover:bg-accent'}`}
+                  className={`min-h-11 py-2 rounded-lg border text-sm ${target === f.value ? 'bg-primary text-primary-foreground border-primary' : 'border-border text-muted-foreground active:bg-accent sm:hover:bg-accent'}`}
                   onClick={() => setTarget(f.value)}
                 >
                   {f.label}
@@ -158,14 +158,14 @@ export function ImageConvertSettings({ onClose }: WidgetSettingsProps) {
 
           <div className="flex gap-2">
             <button
-              className="flex-1 py-2 rounded-lg bg-primary text-primary-foreground font-medium hover:bg-primary/80 disabled:opacity-50"
+              className="flex-1 min-h-11 py-2 rounded-lg bg-primary text-primary-foreground font-medium active:bg-primary/80 sm:hover:bg-primary/80 disabled:opacity-50"
               disabled={!src || busy}
               onClick={convert}
             >
               {busy ? '转换中...' : '开始转换'}
             </button>
             <button
-              className="px-4 py-2 rounded-lg border border-border text-sm hover:bg-accent"
+              className="min-h-11 px-4 py-2 rounded-lg border border-border text-sm active:bg-accent sm:hover:bg-accent"
               onClick={onClose}
             >
               关闭
@@ -179,7 +179,7 @@ export function ImageConvertSettings({ onClose }: WidgetSettingsProps) {
             <>
               <img src={out.url} alt="转换结果" className="max-h-40 max-w-full object-contain" />
               <div className="text-xs text-muted-foreground">{formatSize(out.size)} · {out.ext.toUpperCase()}</div>
-              <button className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm hover:bg-primary/80" onClick={download}>
+              <button className="min-h-11 px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm active:bg-primary/80 sm:hover:bg-primary/80" onClick={download}>
                 下载
               </button>
             </>

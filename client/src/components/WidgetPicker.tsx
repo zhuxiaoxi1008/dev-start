@@ -53,9 +53,9 @@ export function WidgetPicker({ open, onClose, onAdd }: Props) {
   const widgets = listWidgets()
 
   return (
-    <div className="fixed inset-0 z-[90] bg-black/40 flex items-center justify-center p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[90] bg-black/40 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
       <div
-        className="relative bg-popover text-popover-foreground backdrop-blur-xl ring-1 ring-foreground/10 rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5"
+        className="relative bg-popover text-popover-foreground backdrop-blur-xl ring-1 ring-foreground/10 rounded-t-2xl sm:rounded-2xl shadow-xl w-full max-w-lg max-h-[85dvh] sm:max-h-[90vh] overflow-y-auto overscroll-contain p-5 pb-safe"
         onClick={e => e.stopPropagation()}
       >
         <button
@@ -68,22 +68,22 @@ export function WidgetPicker({ open, onClose, onAdd }: Props) {
         <h3 className="text-center text-base font-semibold mb-1">添加小组件</h3>
         <p className="text-center text-xs text-muted-foreground mb-4">选择要放到桌面上的组件</p>
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3">
           {widgets.map(({ type, label }) => {
             const Icon = ICONS[type] ?? CalendarDays
             return (
               <button
                 key={type}
-                className="flex items-start gap-3 p-3 rounded-xl border border-border hover:bg-accent text-left transition-colors disabled:opacity-50"
+                className="flex items-start gap-2 sm:gap-3 p-3 min-h-[72px] rounded-xl border border-border active:bg-accent sm:hover:bg-accent text-left transition-colors disabled:opacity-50"
                 onClick={() => handleAdd(type)}
                 disabled={busy !== null}
               >
                 <span className="w-9 h-9 rounded-lg bg-foreground/5 text-foreground flex items-center justify-center shrink-0">
                   <Icon size={18} />
                 </span>
-                <span className="min-w-0">
+                <span className="min-w-0 flex-1">
                   <span className="block text-sm font-medium">{label}</span>
-                  <span className="block text-[11px] text-muted-foreground truncate">
+                  <span className="block text-[11px] text-muted-foreground leading-snug">
                     {busy === type ? '添加中...' : (DESCRIPTIONS[type] ?? '')}
                   </span>
                 </span>

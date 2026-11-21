@@ -99,18 +99,18 @@ export const NotepadSettings: React.FC<WidgetSettingsProps> = ({ bookmark, onClo
       <h3 className="text-center text-base font-semibold mb-4">记事本</h3>
       {error && <div className="text-xs text-destructive mb-2">{error}</div>}
       <textarea
-        className="w-full h-64 rounded-lg border border-input bg-background/60 px-3 py-2 text-sm resize-none placeholder:text-muted-foreground"
+        className="w-full h-[50vh] sm:h-64 rounded-lg border border-input bg-background/60 px-3 py-2 text-base sm:text-sm resize-none placeholder:text-muted-foreground"
         placeholder={loading ? '加载中...' : '记录点什么...'}
         value={content}
         onChange={e => setContent(e.target.value)}
       />
       <div className="mt-3 flex items-center justify-end gap-2">
         {saved && <span className="text-xs text-emerald-500 mr-auto">已保存</span>}
-        <button className="px-3 py-1.5 rounded-lg border border-border text-sm hover:bg-accent" onClick={onClose}>
+        <button className="min-h-11 px-3 py-1.5 rounded-lg border border-border text-sm active:bg-accent sm:hover:bg-accent" onClick={onClose}>
           关闭
         </button>
         <button
-          className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm hover:bg-primary/80 disabled:opacity-50"
+          className="min-h-11 px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm active:bg-primary/80 sm:hover:bg-primary/80 disabled:opacity-50"
           onClick={save}
           disabled={saving}
         >

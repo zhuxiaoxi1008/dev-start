@@ -152,19 +152,19 @@ export const WeatherSettings: React.FC<WidgetSettingsProps> = ({ config, onSave,
   }, [data, visibility])
 
   return (
-    <div className="p-5">
+    <div className="p-4 sm:p-5">
       <h3 className="text-center text-base font-semibold mb-4">天气</h3>
 
       <div className="flex gap-2 mb-2">
         <input
-          className="flex-1 rounded-lg border border-input bg-background/60 px-3 py-2 text-sm placeholder:text-muted-foreground"
+          className="flex-1 min-w-0 min-h-11 rounded-lg border border-input bg-background/60 px-3 py-2 text-base sm:text-sm placeholder:text-muted-foreground"
           placeholder="搜索城市，例如：西安"
           value={query}
           onChange={e => setQuery(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') doSearch() }}
         />
         <button
-          className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm inline-flex items-center gap-1 hover:bg-primary/80 disabled:opacity-50"
+          className="min-h-11 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm inline-flex items-center gap-1 active:bg-primary/80 sm:hover:bg-primary/80 disabled:opacity-50 shrink-0"
           onClick={doSearch}
           disabled={searching}
         >
@@ -179,7 +179,7 @@ export const WeatherSettings: React.FC<WidgetSettingsProps> = ({ config, onSave,
           {cities.map(ct => (
             <button
               key={ct.id}
-              className="w-full text-left px-3 py-1.5 text-sm hover:bg-accent"
+              className="w-full text-left px-3 py-2.5 min-h-11 text-sm active:bg-accent sm:hover:bg-accent"
               onClick={() => {
                 setDraft({ city: ct.name, lat: ct.latitude, lon: ct.longitude })
                 setCities([])
@@ -254,11 +254,11 @@ export const WeatherSettings: React.FC<WidgetSettingsProps> = ({ config, onSave,
       <div className="flex items-center justify-between">
         <span className="text-[10px] text-muted-foreground">数据来源 Open-Meteo（CC-BY 4.0）</span>
         <div className="flex gap-2">
-          <button className="px-3 py-1.5 rounded-lg border border-border text-sm hover:bg-accent" onClick={onClose}>
+          <button className="min-h-11 px-3 py-1.5 rounded-lg border border-border text-sm active:bg-accent sm:hover:bg-accent" onClick={onClose}>
             取消
           </button>
           <button
-            className="px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm hover:bg-primary/80"
+            className="min-h-11 px-4 py-1.5 rounded-lg bg-primary text-primary-foreground text-sm active:bg-primary/80 sm:hover:bg-primary/80"
             onClick={() => onSave(draft)}
           >
             完成
