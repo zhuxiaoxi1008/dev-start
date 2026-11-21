@@ -6,6 +6,7 @@ import { lazy } from 'react'
 import { registerWidget } from './registry'
 import { AnniversaryCard, AnniversarySettings, defaultAnniversaryConfig } from './event/AnniversaryWidget'
 import { CountdownCard, CountdownSettings, defaultCountdownConfig } from './event/CountdownWidget'
+import { ClockCard, ClockSettings, defaultClockConfig } from './clock/ClockWidget'
 import { ImageConvertCard, ImageConvertSettings } from './imageConvert/ImageConvertWidget'
 import { WeatherCard, WeatherSettings, defaultWeatherConfig } from './weather/WeatherWidget'
 import { TodoCard, TodoSettings, defaultTodoConfig } from './todo/TodoWidget'
@@ -32,6 +33,13 @@ registerWidget('countdown', {
   Card: CountdownCard,
   Settings: CountdownSettings,
   defaultConfig: defaultCountdownConfig,
+})
+
+registerWidget('clock', {
+  label: '时钟',
+  Card: ClockCard,
+  Settings: ClockSettings,
+  defaultConfig: defaultClockConfig,
 })
 
 registerWidget('calendar', {

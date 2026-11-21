@@ -1,7 +1,7 @@
 // client/src/components/WidgetPicker.tsx
 // Sidebar 加号 -> 小组件选择面板：列出注册表里的全部组件
 import React, { useState } from 'react'
-import { X, Heart, Clock, CalendarDays, CloudSun, ListTodo, NotebookPen, Flame, Image } from 'lucide-react'
+import { X, Heart, Clock, AlarmClock, CalendarDays, CloudSun, ListTodo, NotebookPen, Flame, Image } from 'lucide-react'
 import type { WidgetType } from '@/types/widgets'
 import { listWidgets } from '@/widgets/registry'
 import '@/widgets/registerAll'
@@ -9,6 +9,7 @@ import '@/widgets/registerAll'
 const ICONS: Partial<Record<WidgetType, React.ComponentType<{ size?: number; className?: string }>>> = {
   anniversary: Heart,
   countdown: Clock,
+  clock: AlarmClock,
   calendar: CalendarDays,
   weather: CloudSun,
   todo: ListTodo,
@@ -20,6 +21,7 @@ const ICONS: Partial<Record<WidgetType, React.ComponentType<{ size?: number; cla
 const DESCRIPTIONS: Partial<Record<WidgetType, string>> = {
   anniversary: '记录已经走过的天数',
   countdown: '距离目标还有多少天',
+  clock: '数字或表盘样式，可显示秒与日期',
   calendar: '农历、节气与黄历',
   weather: '实时天气与 7 天预报',
   todo: '轻量待办清单',

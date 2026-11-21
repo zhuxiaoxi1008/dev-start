@@ -14,8 +14,8 @@ import { Responsive, type Layout } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 import { WidgetActionProvider, type WidgetActions } from '@/widgets/WidgetActionContext'
 import { WidgetContextMenu } from '@/widgets/WidgetContextMenu'
-import { MobileWidgetCell, MOBILE_COLS, MOBILE_ROW_H } from '@/components/MobileWidgetCell'
-import { useIsMobile } from '@/hooks/useIsMobile'
+import { WidgetCell } from '@/components/WidgetCell'
+import { useCoarsePointer } from '@/hooks/useCoarsePointer'
 import { useElementWidth } from '@/hooks/useElementWidth'
 
 const searchEngines = [
@@ -38,8 +38,9 @@ function HomePage() {
   // 👉 新增拖拽标记
   const [isDragging, setIsDragging] = useState(false)
 
-  const isMobile = useIsMobile()
-  // 桌面端网格宽度：实测容器宽度，替代原硬编码 1152
+  // 手指输入设备（手机/平板）关闭拖拽，避免与滚动抢手势；触屏笔记本仍可拖拽
+  const isCoarsePointer = useCoarsePointer()
+  // 网格宽度：实测容器宽度，让 RGL 的 breakpoints 真正生效（原为硬编码 1152）
   const { ref: gridWrapRef, width: gridWidth } = useElementWidth<HTMLDivElement>()
 
   // 右键（桌面）/ 长按（触屏）菜单状态
@@ -215,68 +216,56 @@ function HomePage() {
         </div>
 
         <div className="relative z-10 flex-1 min-h-0 overflow-y-auto overscroll-contain no-scrollbar mt-4 sm:mt-8 pb-24 sm:pb-32">
-          {isMobile ? (
-            /* 移动端：CSS Grid 流式布局，不启用拖拽，避免与页面滚动抢手势 */
-            <div className="max-w-6xl mx-auto px-3">
-              <div
-                className="grid gap-3"
-                style={{
-                  gridTemplateColumns: `repeat(${MOBILE_COLS}, minmax(0, 1fr))`,
-                  gridAutoRows: `${MOBILE_ROW_H}px`,
-                }}
-              >
-                {bookmarks.map((widget) => (
-                  <MobileWidgetCell key={widget.id} bookmark={widget} onLongPress={openMenuAt} />
-                ))}
-              </div>
+          {/* 统一走 react-grid-layout：宽度取内层内容区实测值，窄屏由 RGL 断点换列 */}
+          <div className="max-w-6xl mx-auto px-3 sm:px-4 relative">
+            <div ref={gridWrapRef}>
+              {gridWidth > 0 && (
+                <Responsive
+                  className="layout"
+                  layouts={{ lg: layouts }}
+                  breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+                  cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+                  rowHeight={80}
+                  width={gridWidth}
+                  onLayoutChange={onLayoutChange}
+                  draggableCancel=".no-drag"
+                  isBounded={true}
+                  resizeConfig={{ enabled: false }}
+                  dragConfig={{
+                    // 手指设备关闭拖拽：避免滑动页面时误拖卡片
+                    enabled: !isCoarsePointer,
+                    // 关键：开启后 react-draggable 不再对 touchstart 调 preventDefault，
+                    // 触摸点按才会派生 click，卡片/按钮才能像鼠标一样使用
+                    allowMobileScroll: true,
+                    // 超过 8px 才算拖拽，区分"点一下"和"拖动"
+                    threshold: 8,
+                  }}
+                  compactType="vertical"
+                  preventCollision={false}
+                  margin={[12, 12]}
+                  containerPadding={[0, 0]}
+                  useCSSTransforms={true}
+                  transitionDuration={200}
+                  // 👉 拖拽事件
+                  onDragStart={() => setIsDragging(true)}
+                  onDragStop={() => {
+                    // 延迟重置，等click事件跑完
+                    setTimeout(() => setIsDragging(false), 50)
+                  }}
+                >
+                  {bookmarks.map((widget) => (
+                    <div key={widget.id}>
+                      <WidgetCell
+                        bookmark={widget}
+                        isDragging={isDragging}
+                        onRequestMenu={openMenuAt}
+                      />
+                    </div>
+                  ))}
+                </Responsive>
+              )}
             </div>
-          ) : (
-            /* 桌面端：react-grid-layout，宽度取内层内容区实测值（不含 px 内边距） */
-            <div className="max-w-6xl mx-auto px-4 relative">
-              <div ref={gridWrapRef}>
-                {gridWidth > 0 && (
-                  <Responsive
-                    className="layout"
-                    layouts={{ lg: layouts }}
-                    breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-                    cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
-                    rowHeight={80}
-                    width={gridWidth}
-                    onLayoutChange={onLayoutChange}
-                    draggableCancel=".no-drag"
-                    isBounded={true}
-                    resizeConfig={{ enabled: false }}
-                    compactType="vertical" 
-                    preventCollision={false} 
-                    margin={[16, 16]} 
-                    containerPadding={[0, 0]} 
-                    useCSSTransforms={true} 
-                    transitionDuration={200}
-                    // 👉 拖拽事件
-                    onDragStart={() => setIsDragging(true)}
-                    onDragStop={() => {
-                      // 延迟重置，等click事件跑完
-                      setTimeout(() => setIsDragging(false), 50)
-                    }}
-                  >
-                    {bookmarks.map((widget) => (
-                      <div
-                        key={widget.id}
-                        className="group relative cursor-grab active:cursor-grabbing"
-                        onContextMenu={(e) => {
-                          e.preventDefault()
-                          openMenuAt(widget, { x: e.clientX, y: e.clientY })
-                        }}
-                      >
-                        {/* 传给子组件 */}
-                        <WidgetRenderer bookmark={widget} isDragging={isDragging} />
-                      </div>
-                    ))}
-                  </Responsive>
-                )}
-              </div>
-            </div>
-          )}
+          </div>
         </div>
 
         <SettingModal open={settingOpen} onClose={() => setSettingOpen(false)} />

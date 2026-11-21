@@ -4,11 +4,12 @@
 import type { ReactNode } from 'react'
 import { useConfig } from '@/context/UserConfigContext'
 import type {
-  WidgetConfig, EventWidgetConfig, WeatherWidgetConfig, HotsearchWidgetConfig,
+  WidgetConfig, EventWidgetConfig, ClockWidgetConfig, WeatherWidgetConfig, HotsearchWidgetConfig,
 } from '@/types/widgets'
 import { daysBetween, formatDateCn } from './event/EventCardBase'
 import { defaultAnniversaryConfig } from './event/AnniversaryWidget'
 import { defaultCountdownConfig, remainingDays } from './event/CountdownWidget'
+import { defaultClockConfig } from './clock/ClockWidget'
 import { defaultWeatherConfig } from './weather/WeatherWidget'
 import { defaultHotsearchConfig } from './hotsearch/HotsearchWidget'
 import { wmoInfo } from './weather/wmo'
@@ -65,6 +66,22 @@ const CountdownContent = ({ bookmark }: ContextMenuContentProps) => {
       <InfoRow label="目标">{formatDateCn(cfg.date)}</InfoRow>
       <InfoRow label="剩余">{days <= 0 ? '已到达' : `${days} 天`}</InfoRow>
       <InfoRow label="重复">{cfg.repeat === 'yearly' ? '每年' : '不重复'}</InfoRow>
+    </>
+  )
+}
+
+const ClockContent = ({ bookmark }: ContextMenuContentProps) => {
+  const raw = useWidgetConfig(bookmark.id) as Partial<ClockWidgetConfig> | undefined
+  const cfg = { ...defaultClockConfig(), ...(raw ?? {}) }
+  const now = new Date()
+  const pad = (n: number) => String(n).padStart(2, '0')
+  return (
+    <>
+      <InfoRow label="当前时间">
+        {pad(now.getHours())}:{pad(now.getMinutes())}:{pad(now.getSeconds())}
+      </InfoRow>
+      <InfoRow label="样式">{cfg.style === 'analog' ? '表盘' : '数字'}</InfoRow>
+      <InfoRow label="显示">{cfg.showDate ? '时间 · 日期' : '仅时间'}</InfoRow>
     </>
   )
 }
@@ -148,6 +165,7 @@ registerContextMenuContent('link', LinkContent)
 registerContextMenuContent('banner', LinkContent)
 registerContextMenuContent('anniversary', AnniversaryContent)
 registerContextMenuContent('countdown', CountdownContent)
+registerContextMenuContent('clock', ClockContent)
 registerContextMenuContent('calendar', CalendarContent)
 registerContextMenuContent('weather', WeatherContent)
 registerContextMenuContent('todo', TodoContent)

@@ -1,6 +1,7 @@
 // client/src/hooks/useLongPress.ts
-// 触屏长按判定：默认 500ms、移动超过 8px 取消（用于替代桌面右键打开菜单）
+// 触屏长按判定：默认 500ms，位移超过 8px 视为滚动并取消
 import { useCallback, useRef } from 'react'
+import type { MouseEvent as ReactMouseEvent, TouchEvent as ReactTouchEvent } from 'react'
 
 interface Options {
   delay?: number
@@ -13,48 +14,47 @@ export function useLongPress({ delay = 500, moveThreshold = 8, onLongPress }: Op
   const start = useRef<{ x: number; y: number } | null>(null)
   const fired = useRef(false)
 
-  const clear = () => {
+  const clear = useCallback(() => {
     if (timer.current !== null) {
       window.clearTimeout(timer.current)
       timer.current = null
     }
     start.current = null
-  }
+  }, [])
 
-  const onTouchStart = useCallback((e: React.TouchEvent) => {
+  const onTouchStart = useCallback((e: ReactTouchEvent) => {
     const t = e.touches[0]
     if (!t) return
     fired.current = false
     start.current = { x: t.clientX, y: t.clientY }
     timer.current = window.setTimeout(() => {
-      fired.current = true
       const p = start.current
-      if (p) onLongPress(p)
-      // 触发后立刻清理，避免后续 touchmove 反复判定
+      if (p) {
+        fired.current = true
+        onLongPress(p)
+      }
       timer.current = null
     }, delay)
   }, [delay, onLongPress])
 
-  const onTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!start.current) return
+  const onTouchMove = useCallback((e: ReactTouchEvent) => {
+    const s = start.current
     const t = e.touches[0]
-    if (!t) return
-    const dx = t.clientX - start.current.x
-    const dy = t.clientY - start.current.y
-    // 手指明显移动视为滚动意图，取消长按
-    if (Math.hypot(dx, dy) > moveThreshold) clear()
-  }, [moveThreshold])
+    if (!s || !t) return
+    if (Math.hypot(t.clientX - s.x, t.clientY - s.y) > moveThreshold) clear()
+  }, [clear, moveThreshold])
 
-  const onTouchEnd = useCallback((e: React.TouchEvent) => {
-    clear()
-    // 长按已触发时，阻止随后的 click 造成误触（打开弹窗/打开链接）
-    if (fired.current) {
-      e.preventDefault()
-      fired.current = false
-    }
+  const onTouchEnd = useCallback(() => { clear() }, [clear])
+  const onTouchCancel = useCallback(() => { clear() }, [clear])
+
+  // 长按已触发后，手指抬起时浏览器仍会补发一次 click。
+  // 在捕获阶段吞掉它，避免"长按弹出菜单"又紧接着触发卡片自身的点击（打开设置）。
+  const onClickCapture = useCallback((e: ReactMouseEvent) => {
+    if (!fired.current) return
+    fired.current = false
+    e.stopPropagation()
+    e.preventDefault()
   }, [])
 
-  const onTouchCancel = useCallback(() => { clear() }, [])
-
-  return { onTouchStart, onTouchMove, onTouchEnd, onTouchCancel }
+  return { onTouchStart, onTouchMove, onTouchEnd, onTouchCancel, onClickCapture }
 }
