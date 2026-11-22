@@ -43,7 +43,7 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ bookmark, isDrag
 
   return (
     <>
-      <Suspense fallback={<div className="w-full h-full rounded-xl bg-white/30 animate-pulse" />}>
+      <Suspense fallback={<div className="w-full h-full rounded-xl bg-card animate-pulse" />}>
         <Card
           bookmark={bookmark}
           config={config}

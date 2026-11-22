@@ -27,7 +27,10 @@ export function EventCardBase({ config, days, daysPrefix, isDragging, onOpen }: 
     >
       {/* 遮罩 */}
       <div className="absolute inset-0" style={{ background: `rgba(0,0,0,${config.overlay ?? 0})` }} />
-      <div className="relative z-10 flex flex-col justify-between h-full p-3 no-drag">
+      <div
+        className="relative z-10 flex flex-col justify-between h-full p-3 no-drag"
+        style={{ textShadow: '0 1px 4px rgba(0,0,0,0.45)' }}
+      >
         <div className="text-sm font-medium truncate">{config.title || '未命名事件'}</div>
         <div className="text-2xl font-bold leading-tight">
           {daysPrefix}{days}<span className="text-sm font-normal ml-1">天</span>

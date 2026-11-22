@@ -161,7 +161,7 @@ export function WidgetContextMenu({ open, x, y, bookmark, onClose }: Props) {
   return createPortal(
     <div
       ref={ref}
-      className="fixed z-[200] w-64 rounded-xl border border-white/60 dark:border-white/10 bg-white/85 dark:bg-neutral-900/85 backdrop-blur-xl text-foreground shadow-xl p-2"
+      className="fixed z-[200] w-64 rounded-xl border border-border bg-popover backdrop-blur-xl text-popover-foreground shadow-xl p-2"
       style={{ left: pos.x, top: pos.y }}
     >
       <div className="px-2 py-1.5 mb-1">

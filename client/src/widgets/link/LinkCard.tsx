@@ -33,7 +33,7 @@ export const LinkCard: React.FC<Props> = ({ bookmark, isDragging }) => {
 
   return (
     <Card
-      className="relative overflow-hidden w-full h-full shadow-sm border border-white/60 dark:border-white/10 backdrop-blur-xl bg-white/40 hover:bg-white/60 dark:bg-neutral-900/55 dark:hover:bg-neutral-900/70 transition-colors cursor-pointer tap-scale"
+      className="relative overflow-hidden w-full h-full backdrop-blur-xl border border-border bg-card transition-colors cursor-pointer tap-scale"
       onClick={handleClick}
     >
       <div className="flex flex-col items-center justify-center w-full h-full p-2 no-drag">

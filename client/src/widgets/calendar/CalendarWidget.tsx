@@ -40,7 +40,7 @@ export function CalendarCard({ isDragging, onOpen }: WidgetCardProps) {
 
   return (
     <div
-      className="relative w-full h-full rounded-xl overflow-hidden border border-white/60 dark:border-white/10 bg-white/70 dark:bg-neutral-900/60 backdrop-blur-xl shadow-sm cursor-pointer select-none p-3 flex flex-col justify-between text-foreground"
+      className="relative w-full h-full rounded-xl overflow-hidden border border-border bg-card backdrop-blur-xl shadow-sm cursor-pointer select-none p-3 flex flex-col justify-between text-card-foreground"
       onClick={() => { if (!isDragging) onOpen() }}
     >
       <div className="flex items-center justify-between text-xs text-muted-foreground no-drag">

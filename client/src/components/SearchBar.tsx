@@ -38,7 +38,7 @@ export function SearchBar({
 
   return (
     <div className="w-full max-w-2xl mx-auto mt-3 sm:mt-4">
-      <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-2xl bg-white/70 dark:bg-neutral-900/60 backdrop-blur-xl border border-white/60 dark:border-white/10 shadow-sm">
+      <div className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-2xl bg-card backdrop-blur-xl border border-border shadow-sm">
         {/* 搜索引擎选择 */}
         <div className="relative shrink-0">
           <button

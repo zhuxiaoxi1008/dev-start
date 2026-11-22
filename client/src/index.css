@@ -53,16 +53,16 @@
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0 / 0.65);
+  --card: oklch(1 0 0 / 0.78);
   --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0 / 0.92);
+  --popover: oklch(1 0 0 / 0.96);
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
   --secondary: oklch(0.97 0 0 / 0.75);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0 / 0.7);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted-foreground: oklch(0.5 0 0);
   --accent: oklch(0.92 0 0 / 0.8);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
@@ -88,9 +88,9 @@
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0 / 0.65);
+  --card: oklch(0.205 0 0 / 0.72);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0 / 0.92);
+  --popover: oklch(0.205 0 0 / 0.96);
   --popover-foreground: oklch(0.985 0 0);
   --primary: oklch(0.922 0 0);
   --primary-foreground: oklch(0.205 0 0);
@@ -117,6 +117,20 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 12%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* 不支持毛玻璃的环境（部分移动端 WebView、省电模式、低端 GPU）：
+   半透明卡片会直接透出壁纸导致发白、文字不清，这里回退为接近不透明的表面色。
+   PC 与移动端共用同一套 token，仅在能力不同时改变不透明度，色相保持一致。 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --card: oklch(0.99 0 0 / 0.95);
+    --popover: oklch(1 0 0 / 0.99);
+  }
+  .dark {
+    --card: oklch(0.205 0 0 / 0.94);
+    --popover: oklch(0.205 0 0 / 0.99);
+  }
 }
 
 @layer base {
@@ -185,10 +199,6 @@
   .cursor-grab,
   .active\:cursor-grabbing:active {
     cursor: auto;
-  }
-  /* 触屏上 hover 态会"粘住"，取消卡片悬停变色，改用 :active */
-  .hover\:bg-white\/60:hover {
-    background-color: inherit;
   }
   /* 可点元素统一按下反馈 */
   .tap-scale {

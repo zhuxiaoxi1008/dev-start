@@ -50,7 +50,7 @@ export const NotepadCard: React.FC<WidgetCardProps> = ({ bookmark, isDragging, o
 
   return (
     <div
-      className="relative w-full h-full rounded-xl overflow-hidden border border-white/60 dark:border-white/10 bg-white/70 dark:bg-neutral-900/60 backdrop-blur-xl shadow-sm cursor-pointer select-none p-3 flex flex-col text-foreground"
+      className="relative w-full h-full rounded-xl overflow-hidden border border-border bg-card backdrop-blur-xl shadow-sm cursor-pointer select-none p-3 flex flex-col text-card-foreground"
       onClick={() => { if (!isDragging) onOpen() }}
     >
       <div className="text-xs font-medium mb-2 no-drag">记事本</div>

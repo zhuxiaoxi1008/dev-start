@@ -109,7 +109,10 @@ export const ClockCard: React.FC<WidgetCardProps> = ({ config, isDragging, onOpe
       onClick={() => { if (!isDragging) onOpen() }}
     >
       <div className="absolute inset-0" style={{ background: `rgba(0,0,0,${cfg.overlay ?? 0})` }} />
-      <div className="relative z-10 h-full flex flex-col items-center justify-center gap-1.5 p-3">
+      <div
+        className="relative z-10 h-full flex flex-col items-center justify-center gap-1.5 p-3"
+        style={{ textShadow: '0 1px 4px rgba(0,0,0,0.45)' }}
+      >
         {cfg.style === 'analog' ? (
           <div className="w-full max-w-[7.5rem] aspect-square">
             <AnalogClock now={now} showSeconds={cfg.showSeconds} />

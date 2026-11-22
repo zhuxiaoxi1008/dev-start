@@ -15,7 +15,7 @@ export function defaultCountdownConfig(): EventWidgetConfig {
     bgType: 'image',
     bgImage: BG_PRESETS[1]?.name ?? BG_PRESETS[0]?.name ?? '',
     bgColor: '#2fbf9b',
-    overlay: 0.15,
+    overlay: 0.3,
   }
 }
 

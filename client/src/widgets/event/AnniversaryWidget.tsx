@@ -14,7 +14,7 @@ export function defaultAnniversaryConfig(): EventWidgetConfig {
     bgType: 'image',
     bgImage: BG_PRESETS[0]?.name ?? '',
     bgColor: '#3b82f6',
-    overlay: 0.15,
+    overlay: 0.3,
   }
 }
 

@@ -28,7 +28,7 @@ export function TimeDisplay() {
     <div className="text-center mt-6">
       <div
         className="text-4xl sm:text-5xl md:text-6xl tabular-nums text-white font-medium leading-tight"
-        style={{ textShadow: "0 2px 6px rgba(0,0,0,.16)" }}
+        style={{ textShadow: "0 2px 10px rgba(0,0,0,.35), 0 1px 2px rgba(0,0,0,.3)" }}
       >
         {hh}:{mm}:{ss}
       </div>
@@ -36,8 +36,8 @@ export function TimeDisplay() {
         className="text-sm sm:text-lg"
         style={{
           color: "#ffffff",
-          opacity: 0.85,
-          textShadow: "0 1px 4px rgba(0,0,0,.12)",
+          opacity: 0.9,
+          textShadow: "0 1px 6px rgba(0,0,0,.35)",
         }}
       >
         {month}月{day}日{week}

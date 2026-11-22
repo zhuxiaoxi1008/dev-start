@@ -35,14 +35,14 @@ export const WeatherCard: React.FC<WidgetCardProps> = ({ config, isDragging, onO
 
   if (loading && !data) {
     return (
-      <div className="w-full h-full rounded-xl bg-white/40 dark:bg-zinc-900/50 animate-pulse" />
+      <div className="w-full h-full rounded-xl bg-card animate-pulse" />
     )
   }
 
   if (!data) {
     return (
       <div
-        className="w-full h-full rounded-xl bg-white/40 dark:bg-zinc-900/50 backdrop-blur-sm border border-white/20 p-3 flex flex-col items-center justify-center text-xs text-zinc-600 dark:text-zinc-300 cursor-pointer"
+        className="w-full h-full rounded-xl bg-card backdrop-blur-sm border border-border p-3 flex flex-col items-center justify-center text-xs text-muted-foreground cursor-pointer"
         onClick={() => { if (!isDragging) onOpen() }}
       >
         <MapPin size={14} className="mb-1" />
