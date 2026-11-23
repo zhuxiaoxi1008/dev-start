@@ -25,6 +25,14 @@ export type UserSettings = {
 
 export type UserSettingsPatch = Partial<Omit<UserSettings, 'id' | 'user_id' | 'created_at' | 'updated_at'>>
 
+export type Category = {
+  id: string
+  user_id: string | null
+  name: string
+  sort_order: number
+  created_at?: string
+}
+
 export type Bookmark = {
   id: string
   user_id: string

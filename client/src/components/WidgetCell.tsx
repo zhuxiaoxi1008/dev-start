@@ -18,9 +18,11 @@ export function WidgetCell({ bookmark, isDragging, onRequestMenu }: Props) {
 
   return (
     <div
+      data-widget-cell
       className="group relative cursor-grab active:cursor-grabbing h-full w-full no-callout"
       onContextMenu={(e) => {
         e.preventDefault()
+        e.stopPropagation()
         onRequestMenu(bookmark, { x: e.clientX, y: e.clientY })
       }}
       onTouchStart={lp.onTouchStart}

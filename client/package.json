@@ -21,6 +21,7 @@
     "cn": "^0.5.2",
     "lucide-react": "^1.75.0",
     "lunar-typescript": "^1.8.7",
+    "marked": "^18.2.1",
     "radix-ui": "^1.8.1",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

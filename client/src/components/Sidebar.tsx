@@ -5,7 +5,7 @@ import { useConfig } from '@/context/UserConfigContext';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { cn } from '@/lib/utils';
 
-export function Sidebar({ onAddClick }: { onAddClick?: () => void }) {
+export function Sidebar({ onAddClick, onSettingsClick }: { onAddClick?: () => void; onSettingsClick?: () => void }) {
   const { settings, patchSetting } = useConfig();
   const isMobile = useIsMobile();
   const pos = settings.sidebar_position || 'left';
@@ -27,7 +27,7 @@ export function Sidebar({ onAddClick }: { onAddClick?: () => void }) {
             <button onClick={toggleTheme} className={btn} aria-label="切换主题">
               {settings.dark_mode ? <Sun size={20} /> : <Moon size={20} />}
             </button>
-            <button className={btn} aria-label="设置"><SettingsIcon size={20} /></button>
+            <button className={btn} onClick={onSettingsClick} aria-label="设置"><SettingsIcon size={20} /></button>
           </div>
         </div>
       </div>
@@ -45,7 +45,7 @@ export function Sidebar({ onAddClick }: { onAddClick?: () => void }) {
       <button onClick={toggleTheme} className={btn} aria-label="切换主题">
         {settings.dark_mode ? <Sun size={20} /> : <Moon size={20} />}
       </button>
-      <button className={btn} aria-label="设置"><SettingsIcon size={20} /></button>
+      <button className={btn} onClick={onSettingsClick} aria-label="设置"><SettingsIcon size={20} /></button>
     </div>
   );
 

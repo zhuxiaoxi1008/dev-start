@@ -12,6 +12,7 @@ import { WeatherCard, WeatherSettings, defaultWeatherConfig } from './weather/We
 import { TodoCard, TodoSettings, defaultTodoConfig } from './todo/TodoWidget'
 import { NotepadCard, NotepadSettings, defaultNotepadConfig } from './notepad/NotepadWidget'
 import { HotsearchCard, HotsearchSettings, defaultHotsearchConfig } from './hotsearch/HotsearchWidget'
+import { MarkdownCard, MarkdownSettings, defaultMarkdownConfig } from './markdown/MarkdownWidget'
 // 右键菜单"按类型扩展"的信息内容注册（副作用：执行各类型 registerContextMenuContent）
 import './contextMenuContent'
 
@@ -82,4 +83,11 @@ registerWidget('hotsearch', {
   Card: HotsearchCard,
   Settings: HotsearchSettings,
   defaultConfig: defaultHotsearchConfig,
+})
+
+registerWidget('markdown', {
+  label: 'Markdown 记事本',
+  Card: MarkdownCard,
+  Settings: MarkdownSettings,
+  defaultConfig: defaultMarkdownConfig,
 })

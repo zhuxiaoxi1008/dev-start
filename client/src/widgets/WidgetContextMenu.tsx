@@ -4,8 +4,8 @@
 // 移动端：长按从底部弹出操作表（全宽、48px 触点）
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Settings, Trash2, ExternalLink } from 'lucide-react'
-import type { Bookmark } from '@/types/userConfig'
+import { Settings, Trash2, ExternalLink, Folder } from 'lucide-react'
+import type { Bookmark, Category } from '@/types/userConfig'
 import { getWidget } from './registry'
 import { getContextMenuContent } from './contextMenu'
 import { useWidgetActions } from './WidgetActionContext'
@@ -17,10 +17,12 @@ interface Props {
   x: number
   y: number
   bookmark: Bookmark | null
+  categories?: Category[]
+  onMoveToCategory?: (bookmarkId: string, categoryId: string | null) => void
   onClose: () => void
 }
 
-export function WidgetContextMenu({ open, x, y, bookmark, onClose }: Props) {
+export function WidgetContextMenu({ open, x, y, bookmark, categories = [], onMoveToCategory, onClose }: Props) {
   const actions = useWidgetActions()
   const isMobile = useIsMobile()
   const ref = useRef<HTMLDivElement>(null)
@@ -104,6 +106,44 @@ export function WidgetContextMenu({ open, x, y, bookmark, onClose }: Props) {
     onClose()
   }
 
+  const moveTo = (categoryId: string | null) => {
+    onMoveToCategory?.(bookmark.id, categoryId)
+    onClose()
+  }
+
+  const moveToCategory = categories.length > 0 ? (
+    <div className="border-t border-border pt-2 mt-1">
+      <div className="flex items-center gap-1 px-2 pb-1.5 text-[11px] text-muted-foreground">
+        <Folder size={12} />移入分类
+      </div>
+      <div className="flex flex-wrap gap-1.5 px-2 max-h-32 overflow-y-auto overscroll-contain">
+        <button
+          className={`px-2 py-1 rounded-md text-xs border ${
+            bookmark.category_id == null
+              ? 'bg-primary text-primary-foreground border-transparent'
+              : 'border-border hover:bg-accent'
+          }`}
+          onClick={() => moveTo(null)}
+        >
+          未分类
+        </button>
+        {categories.map(c => (
+          <button
+            key={c.id}
+            className={`px-2 py-1 rounded-md text-xs border max-w-[9rem] truncate ${
+              bookmark.category_id === c.id
+                ? 'bg-primary text-primary-foreground border-transparent'
+                : 'border-border hover:bg-accent'
+            }`}
+            onClick={() => moveTo(c.id)}
+          >
+            {c.name}
+          </button>
+        ))}
+      </div>
+    </div>
+  ) : null
+
   // ── 移动端：底部操作表 ──
   if (isMobile) {
     return createPortal(
@@ -126,6 +166,8 @@ export function WidgetContextMenu({ open, x, y, bookmark, onClose }: Props) {
               <Content bookmark={bookmark} type={type} />
             </div>
           )}
+
+          {moveToCategory && <div className="px-4">{moveToCategory}</div>}
 
           <div className="border-t border-border">
             <button
@@ -174,6 +216,8 @@ export function WidgetContextMenu({ open, x, y, bookmark, onClose }: Props) {
           <Content bookmark={bookmark} type={type} />
         </div>
       )}
+
+      {moveToCategory}
 
       <button
         className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm hover:bg-black/5 dark:hover:bg-white/10 mt-1"

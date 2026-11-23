@@ -94,7 +94,34 @@ bookmarks.patch('/layout', userIdMiddleware, async (c) => {
   return c.json({ success: true })
 })
 
-// 4. 删除书签/小组件（右键菜单"移除组件"调用）
+// 4. 更新单个书签（批量编辑：归类等）
+bookmarks.patch('/:id', userIdMiddleware, async (c) => {
+  const userId = c.get('userId')
+  const supabase = getSupabaseClient(c.env)
+  const id = c.req.param('id')
+  const body = await c.req.json<Record<string, unknown>>()
+
+  // 仅允许更新白名单字段，避免前端误传 user_id 等
+  const allowed = ['title', 'url', 'icon', 'widget_type', 'category_id', 'w', 'h', 'x', 'y', 'sort_order']
+  const patch: Record<string, unknown> = {}
+  for (const key of allowed) {
+    if (key in body) patch[key] = body[key]
+  }
+  if (Object.keys(patch).length === 0) return c.json({ error: '没有可更新的字段' }, 400)
+
+  const { data, error } = await supabase
+    .from('bookmarks')
+    .update(patch)
+    .eq('id', id)
+    .eq('user_id', userId)
+    .select('*')
+    .single()
+
+  if (error) return c.json({ error: error.message }, 500)
+  return c.json(data)
+})
+
+// 5. 删除书签/小组件（右键菜单"移除组件"调用）
 bookmarks.delete('/:id', userIdMiddleware, async (c) => {
   const userId = c.get('userId')
   const supabase = getSupabaseClient(c.env)

@@ -5,7 +5,7 @@ import type { Bookmark } from './userConfig'
 export type WidgetType =
   | 'link' | 'banner'
   | 'anniversary' | 'countdown' | 'clock' | 'calendar' | 'weather'
-  | 'todo' | 'notepad' | 'hotsearch' | 'image_convert'
+  | 'todo' | 'notepad' | 'hotsearch' | 'image_convert' | 'markdown'
 
 // 事件类组件（纪念日/倒计时）共用背景体系
 export interface EventWidgetConfig {
@@ -64,6 +64,7 @@ export const WIDGET_DEFAULT_SIZE: Record<WidgetType, { w: number; h: number }> =
   notepad: { w: 2, h: 2 },
   hotsearch: { w: 2, h: 2 },
   image_convert: { w: 4, h: 2 },
+  markdown: { w: 2, h: 3 },
 }
 
 export interface WidgetCardProps {

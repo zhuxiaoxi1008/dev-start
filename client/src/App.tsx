@@ -6,8 +6,14 @@ import { SearchBar } from '@/components/SearchBar'
 import { SettingModal } from '@/components/SettingModal'
 import { Sidebar } from '@/components/Sidebar'
 import { WidgetPicker } from '@/components/WidgetPicker'
+import { RootContextMenu, type RootMenuAction } from '@/components/RootContextMenu'
+import { AddBookmarkDialog } from '@/components/AddBookmarkDialog'
+import { AddCategoryDialog } from '@/components/AddCategoryDialog'
+import { BatchEditDialog } from '@/components/BatchEditDialog'
+import { SettingsModal } from '@/components/SettingsModal'
+import { CategoryCard, CategoryBookmarksModal } from '@/components/CategoryCard'
 import { WidgetRenderer } from '@/widgets/WidgetRenderer'
-import type { Bookmark } from '@/types/userConfig'
+import type { Bookmark, Category } from '@/types/userConfig'
 import { WIDGET_DEFAULT_SIZE, type WidgetType } from '@/types/widgets'
 import { getWidget } from '@/widgets/registry'
 import { Responsive, type Layout } from 'react-grid-layout'
@@ -26,12 +32,33 @@ const searchEngines = [
 
 interface EngineItem { name: string; icon: string; url: string; }
 
+// 分类框位置存本地：categories 表暂无布局字段，先按设备保存
+const CAT_LAYOUT_KEY = 'devstart_category_layout'
+type CatLayout = Record<string, { x: number; y: number; w: number; h: number }>
+function readCatLayout(): CatLayout {
+  try { return JSON.parse(localStorage.getItem(CAT_LAYOUT_KEY) || '{}') as CatLayout } catch { return {} }
+}
+
 function HomePage() {
   const { loading, settings, patchSetting } = useConfig()
   const [keyword, setKeyword] = useState("")
   const [selectedEngine, setSelectedEngine] = useState<EngineItem>(searchEngines[0])
   const [settingOpen, setSettingOpen] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
+
+  // 空白处右键菜单与弹窗
+  const [rootMenu, setRootMenu] = useState<{ open: boolean; x: number; y: number }>({ open: false, x: 0, y: 0 })
+  const [addBookmarkOpen, setAddBookmarkOpen] = useState(false)
+  const [addCategoryOpen, setAddCategoryOpen] = useState(false)
+  const [batchOpen, setBatchOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [categories, setCategories] = useState<Category[]>([])
+  // 当前打开查看的分类
+  const [openCategory, setOpenCategory] = useState<Category | null>(null)
+  // 从分类框添加书签时预选的分类 / 正在重命名的分类
+  const [bookmarkCategoryId, setBookmarkCategoryId] = useState<string | null>(null)
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [catLayout, setCatLayout] = useState<CatLayout>(readCatLayout)
   
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
   const [bookmarksLoading, setBookmarksLoading] = useState(true)
@@ -117,8 +144,20 @@ function HomePage() {
     }
   }, [settings.user_id])
 
+  // 分类：与书签一起加载，供添加书签/批量编辑使用
+  useEffect(() => {
+    if (!settings.user_id) return
+    let alive = true
+    fetch('/api/categories', { headers: { 'X-User-Id': settings.user_id } })
+      .then(res => (res.ok ? res.json() : []))
+      .then(data => { if (alive) setCategories(Array.isArray(data) ? data : []) })
+      .catch(err => console.error('获取分类失败', err))
+    return () => { alive = false }
+  }, [settings.user_id])
+
   const layouts = useMemo(() => {
-    return bookmarks.map(bm => ({
+    const maxY = bookmarks.reduce((m, bm) => Math.max(m, bm.y + bm.h), 0)
+    const bookmarkLayouts = bookmarks.map(bm => ({
       i: bm.id,
       x: bm.x,
       y: bm.y,
@@ -126,11 +165,36 @@ function HomePage() {
       h: bm.h,
       static: false
     }))
-  }, [bookmarks])
+    // 分类框可拖拽，位置优先取本地保存值
+    const categoryLayouts = categories.map((c, index) => {
+      const saved = catLayout[c.id]
+      return {
+        i: `cat-${c.id}`,
+        x: saved?.x ?? (index % 4) * 3,
+        y: saved?.y ?? maxY + Math.floor(index / 4) * 2,
+        w: saved?.w ?? 2,
+        h: saved?.h ?? 2,
+      }
+    })
+    return [...bookmarkLayouts, ...categoryLayouts]
+  }, [bookmarks, categories, catLayout])
 
   const onLayoutChange = async (currentLayout: Layout) => {
+    // 分类框布局只存本地，不写入书签表
+    const isCategoryItem = (id: unknown) => String(id).startsWith('cat-')
+    const catItems = currentLayout.filter(l => isCategoryItem(l.i))
+    if (catItems.length > 0) {
+      const next: CatLayout = {}
+      for (const item of catItems) {
+        next[String(item.i).slice(4)] = { x: item.x, y: item.y, w: item.w, h: item.h }
+      }
+      setCatLayout(next)
+      try { localStorage.setItem(CAT_LAYOUT_KEY, JSON.stringify(next)) } catch { /* ignore */ }
+    }
+
+    const widgetLayout = currentLayout.filter(l => !isCategoryItem(l.i))
     const updatedBookmarks = bookmarks.map(bm => {
-      const layoutItem = currentLayout.find(l => l.i === bm.id)
+      const layoutItem = widgetLayout.find(l => l.i === bm.id)
       if (layoutItem) {
         return { ...bm, x: layoutItem.x, y: layoutItem.y, w: layoutItem.w, h: layoutItem.h }
       }
@@ -145,7 +209,7 @@ function HomePage() {
           'Content-Type': 'application/json',
           'X-User-Id': settings.user_id 
         },
-        body: JSON.stringify(currentLayout)
+        body: JSON.stringify(widgetLayout)
       })
     } catch (err) {
       console.error('保存布局失败', err)
@@ -190,15 +254,104 @@ function HomePage() {
     setMenu({ open: true, x: pos.x, y: pos.y, bookmark })
   }
 
+  // 新组件默认追加到网格底部
+  const maxWidgetY = bookmarks.reduce((m, bm) => Math.max(m, bm.y + bm.h), 0)
+
+  // 批量归类
+  const applyCategoryToBookmarks = async (ids: string[], categoryId: string | null) => {
+    await Promise.all(ids.map(id => fetch(`/api/bookmarks/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'X-User-Id': settings.user_id },
+      body: JSON.stringify({ category_id: categoryId }),
+    })))
+    setBookmarks(prev => prev.map(bm => ids.includes(bm.id) ? { ...bm, category_id: categoryId } : bm))
+  }
+
+  // 批量删除
+  const deleteBookmarks = async (ids: string[]) => {
+    await Promise.all(ids.map(id => fetch(`/api/bookmarks/${id}`, {
+      method: 'DELETE',
+      headers: { 'X-User-Id': settings.user_id },
+    })))
+    setBookmarks(prev => prev.filter(bm => !ids.includes(bm.id)))
+  }
+
+  // 单个组件移入/移出分类
+  const moveToCategory = async (bookmarkId: string, categoryId: string | null) => {
+    try {
+      const res = await fetch(`/api/bookmarks/${bookmarkId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-User-Id': settings.user_id },
+        body: JSON.stringify({ category_id: categoryId }),
+      })
+      if (!res.ok) throw new Error('移动分类失败')
+      setBookmarks(prev => prev.map(bm => bm.id === bookmarkId ? { ...bm, category_id: categoryId } : bm))
+    } catch (err) {
+      console.error(err)
+      alert(err instanceof Error ? err.message : '移动分类失败')
+    }
+  }
+
+  // 删除分类：先把分类内书签置为未分类，再删分类
+  // 注意：线上库的 category_id 外键实际是级联删除，直接删分类会连带删掉书签
+  const deleteCategory = async (category: Category) => {
+    const inside = bookmarks.filter(bm => bm.category_id === category.id)
+    try {
+      await Promise.all(inside.map(bm => fetch(`/api/bookmarks/${bm.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-User-Id': settings.user_id },
+        body: JSON.stringify({ category_id: null }),
+      })))
+    } catch (err) {
+      console.error(err)
+      alert('取回分类内书签失败，已取消删除')
+      throw err
+    }
+
+    const res = await fetch(`/api/categories/${category.id}`, {
+      method: 'DELETE',
+      headers: { 'X-User-Id': settings.user_id },
+    })
+    if (!res.ok) {
+      alert('删除分类失败')
+      throw new Error('删除分类失败')
+    }
+    setCategories(prev => prev.filter(c => c.id !== category.id))
+    setBookmarks(prev => prev.map(bm => bm.category_id === category.id ? { ...bm, category_id: null } : bm))
+    setCatLayout(prev => {
+      const next = { ...prev }
+      delete next[category.id]
+      try { localStorage.setItem(CAT_LAYOUT_KEY, JSON.stringify(next)) } catch { /* ignore */ }
+      return next
+    })
+    if (openCategory?.id === category.id) setOpenCategory(null)
+  }
+
+  // 空白处右键：避开卡片、表单与已打开的弹窗
+  const handleRootContextMenu = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement
+    if (target.closest('[data-widget-cell], .fixed.inset-0, input, textarea, select, button, a')) return
+    e.preventDefault()
+    setRootMenu({ open: true, x: e.clientX, y: e.clientY })
+  }
+
+  const handleRootAction = (action: RootMenuAction) => {
+    if (action === 'addBookmark') { setBookmarkCategoryId(null); setAddBookmarkOpen(true) }
+    else if (action === 'addCategory') { setEditingCategory(null); setAddCategoryOpen(true) }
+    else if (action === 'wallpaper') setSettingOpen(true)
+    else if (action === 'batch') setBatchOpen(true)
+    else if (action === 'settings') setSettingsOpen(true)
+  }
+
   if (loading || bookmarksLoading) {
     return <div className="h-[100dvh] flex items-center justify-center text-foreground">加载配置...</div>
   }
 
   return (
     <WidgetActionProvider actions={actions}>
-      <div className="h-[100dvh] relative overflow-hidden flex flex-col">
+      <div className="h-[100dvh] relative overflow-hidden flex flex-col" onContextMenu={handleRootContextMenu}>
         <BackgroundLayer />
-        <Sidebar onAddClick={() => setPickerOpen(true)} />
+        <Sidebar onAddClick={() => setPickerOpen(true)} onSettingsClick={() => setSettingsOpen(true)} />
 
         <div className="relative z-20 flex flex-col items-center pt-4 px-3 sm:px-4 shrink-0 pointer-events-none">
           <div className="pointer-events-auto flex flex-col items-center w-full">
@@ -262,6 +415,19 @@ function HomePage() {
                       />
                     </div>
                   ))}
+                  {categories.map(category => (
+                    <div key={`cat-${category.id}`}>
+                      <CategoryCard
+                        category={category}
+                        bookmarks={bookmarks}
+                        isDragging={isDragging}
+                        onOpen={() => setOpenCategory(category)}
+                        onAddBookmark={c => { setBookmarkCategoryId(c.id); setAddBookmarkOpen(true) }}
+                        onRename={c => { setEditingCategory(c); setAddCategoryOpen(true) }}
+                        onDelete={deleteCategory}
+                      />
+                    </div>
+                  ))}
                 </Responsive>
               )}
             </div>
@@ -270,11 +436,54 @@ function HomePage() {
 
         <SettingModal open={settingOpen} onClose={() => setSettingOpen(false)} />
         <WidgetPicker open={pickerOpen} onClose={() => setPickerOpen(false)} onAdd={addWidget} />
+        <RootContextMenu
+          open={rootMenu.open}
+          x={rootMenu.x}
+          y={rootMenu.y}
+          onClose={() => setRootMenu(m => ({ ...m, open: false }))}
+          onAction={handleRootAction}
+        />
+        <AddBookmarkDialog
+          open={addBookmarkOpen}
+          onClose={() => setAddBookmarkOpen(false)}
+          categories={categories}
+          defaultY={maxWidgetY}
+          defaultCategoryId={bookmarkCategoryId}
+          onCreated={bm => setBookmarks(prev => [...prev, bm])}
+        />
+        <AddCategoryDialog
+          open={addCategoryOpen}
+          onClose={() => { setAddCategoryOpen(false); setEditingCategory(null) }}
+          sortOrder={categories.length}
+          category={editingCategory}
+          onSaved={c => {
+            setCategories(prev => editingCategory ? prev.map(item => item.id === c.id ? c : item) : [...prev, c])
+            setEditingCategory(null)
+          }}
+        />
+        <BatchEditDialog
+          open={batchOpen}
+          onClose={() => setBatchOpen(false)}
+          bookmarks={bookmarks}
+          categories={categories}
+          onApplyCategory={applyCategoryToBookmarks}
+          onDelete={deleteBookmarks}
+        />
+        <SettingsModal open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+        <CategoryBookmarksModal
+          open={!!openCategory}
+          category={openCategory}
+          bookmarks={bookmarks}
+          onClose={() => setOpenCategory(null)}
+          onRemoveFromCategory={(id) => moveToCategory(id, null)}
+        />
         <WidgetContextMenu
           open={menu.open}
           x={menu.x}
           y={menu.y}
           bookmark={menu.bookmark}
+          categories={categories}
+          onMoveToCategory={moveToCategory}
           onClose={() => setMenu(m => ({ ...m, open: false }))}
         />
       </div>
