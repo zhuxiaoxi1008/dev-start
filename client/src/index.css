@@ -260,3 +260,9 @@
     transform: scale(0.97);
   }
 }
+
+
+/* 全局样式：自定义滚动条外观，隐藏默认条 */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+

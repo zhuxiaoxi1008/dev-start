@@ -53,7 +53,7 @@ export type WidgetsConfigMap = Record<string, WidgetConfig>
 
 // 各组件默认网格尺寸（12 列网格，rowHeight=80）
 export const WIDGET_DEFAULT_SIZE: Record<WidgetType, { w: number; h: number }> = {
-  link: { w: 2, h: 2 },
+  link: { w: 1, h: 1 },
   banner: { w: 4, h: 2 },
   anniversary: { w: 2, h: 2 },
   countdown: { w: 2, h: 2 },
@@ -62,9 +62,9 @@ export const WIDGET_DEFAULT_SIZE: Record<WidgetType, { w: number; h: number }> =
   weather: { w: 4, h: 2 },
   todo: { w: 2, h: 2 },
   notepad: { w: 2, h: 2 },
-  hotsearch: { w: 2, h: 2 },
+  hotsearch: { w: 2, h: 4 },
   image_convert: { w: 4, h: 2 },
-  markdown: { w: 2, h: 3 },
+  markdown: { w: 4, h: 2 },
 }
 
 export interface WidgetCardProps {

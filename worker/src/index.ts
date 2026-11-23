@@ -7,6 +7,7 @@ import categoryRoutes from './routes/categories'
 import weatherRoutes from './routes/weather'
 import todoRoutes from './routes/todos'
 import noteRoutes from './routes/notes'
+import hotlistRoutes from './routes/hotlist'
 
 const app = new Hono()
 
@@ -20,6 +21,7 @@ app.route('/api/categories', categoryRoutes)
 app.route('/api/weather', weatherRoutes)
 app.route('/api/todos', todoRoutes)
 app.route('/api/notes', noteRoutes)
+app.route('/api/hotlist', hotlistRoutes)
 
 app.get('/api/health', (c) => {
   return c.json({ status: 'ok', time: new Date().toISOString() })
