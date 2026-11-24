@@ -38,31 +38,21 @@ export function CalendarCard({ isDragging, onOpen }: WidgetCardProps) {
   const today = new Date()
   const event = dayEvent(solar)
 
-  // 按季节选择渐变色
-  const month = today.getMonth()
-  const gradient = month < 2 || month === 11
-    ? 'from-blue-500/20 to-cyan-500/10'   // 冬
-    : month < 5
-    ? 'from-emerald-500/20 to-teal-500/10' // 春
-    : month < 8
-    ? 'from-orange-500/20 to-amber-500/10' // 夏
-    : 'from-rose-500/20 to-orange-500/10'   // 秋
-
   return (
     <div
-      className={`relative w-full h-full rounded-xl overflow-hidden border border-border bg-gradient-to-br ${gradient} backdrop-blur-xl shadow-sm cursor-pointer select-none p-3 flex flex-col items-center justify-center text-card-foreground`}
+      className={`relative w-full h-full rounded-xl overflow-hidden bg-white backdrop-blur-xl shadow-sm cursor-pointer select-none flex flex-col items-center justify-center text-card-foreground`}
       onClick={() => { if (!isDragging) onOpen() }}
     >
-      <div className="text-xs text-muted-foreground mb-0.5 no-drag">
+      <div className="flex-1 flex items-center justify-center w-full text-xl text-muted-foreground mb-0.5 no-drag bg-red-400 text-white">
         {today.getFullYear()}年{today.getMonth() + 1}月 · 星期{WEEK_CN[today.getDay()]}
       </div>
-      <div className="text-5xl font-bold leading-none mb-1 no-drag tabular-nums">{today.getDate()}</div>
-      <div className="text-xs text-center space-y-0.5 no-drag">
+      <div className="flex-2 flex items-center justify-center text-6xl font-bold leading-none mb-1 no-drag tabular-nums">{today.getDate()}</div>
+      <div className="flex-1 text-xs text-center space-y-1 no-drag">
         <div className="truncate">
           {lunar.getMonthInChinese()}月{lunar.getDayInChinese()}
           {event ? <span className="text-orange-500 ml-1">{event}</span> : ''}
         </div>
-        <div className="text-muted-foreground text-[11px]">第{dayOfYear(today)}天 · 第{weekOfYear(today)}周</div>
+        <div className="text-muted-foreground">第{dayOfYear(today)}天 · 第{weekOfYear(today)}周</div>
       </div>
     </div>
   )
