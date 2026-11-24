@@ -52,7 +52,10 @@ export const WidgetRenderer: React.FC<WidgetRendererProps> = ({ bookmark, isDrag
         />
       </Suspense>
       {modalOpen && Settings && (
-        <WidgetModalHost onClose={() => setModalOpen(false)} wide={type === 'calendar'}>
+        <WidgetModalHost
+          onClose={() => setModalOpen(false)}
+          wide={type === 'calendar' || type === 'json_format' || type === 'encode_decode'}
+        >
           <Suspense fallback={<div className="p-8 text-center text-sm">加载中...</div>}>
             <Settings
               bookmark={bookmark}

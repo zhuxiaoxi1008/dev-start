@@ -6,6 +6,7 @@ export type WidgetType =
   | 'link' | 'banner'
   | 'anniversary' | 'countdown' | 'clock' | 'calendar' | 'weather'
   | 'todo' | 'notepad' | 'hotsearch' | 'image_convert' | 'markdown'
+  | 'json_format' | 'encode_decode'
 
 // 事件类组件（纪念日/倒计时）共用背景体系
 export interface EventWidgetConfig {
@@ -65,7 +66,19 @@ export const WIDGET_DEFAULT_SIZE: Record<WidgetType, { w: number; h: number }> =
   hotsearch: { w: 2, h: 4 },
   image_convert: { w: 4, h: 2 },
   markdown: { w: 4, h: 2 },
+  json_format: { w: 2, h: 2 },
+  encode_decode: { w: 2, h: 2 },
 }
+
+// 12 列基准布局下的可选组件尺寸（宽 × 高）
+export const WIDGET_SIZE_OPTIONS: Array<{ label: string; w: number; h: number }> = [
+  { label: '1×1', w: 1, h: 1 },
+  { label: '1×2', w: 1, h: 2 },
+  { label: '2×1', w: 2, h: 1 },
+  { label: '2×2', w: 2, h: 2 },
+  { label: '2×4', w: 2, h: 4 },
+  { label: '4×2', w: 4, h: 2 },
+]
 
 export interface WidgetCardProps {
   bookmark: Bookmark

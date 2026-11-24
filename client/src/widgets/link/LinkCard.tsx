@@ -33,19 +33,19 @@ export const LinkCard: React.FC<Props> = ({ bookmark, isDragging }) => {
 
   return (
     <Card
-      className="relative overflow-hidden w-full h-full backdrop-blur-xl border border-border bg-card transition-colors cursor-pointer tap-scale"
+      className="relative overflow-hidden w-full h-full p-0 backdrop-blur-xl border border-border bg-card transition-colors cursor-pointer tap-scale"
       onClick={handleClick}
     >
-      <div className="flex flex-col items-center justify-center w-full h-full p-2 no-drag">
+      <div className="flex flex-col items-center justify-center w-full h-full no-drag">
         <img
           src={bookmark.icon || `https://ui-avatars.com/api/?name=${bookmark.title}&background=random&color=fff`}
           alt={bookmark.title}
-          className="w-10 h-10 object-contain mb-2"
+          className="w-10 h-10 object-contain"
           onError={(e) => {
             (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${bookmark.title}&background=random&color=fff&size=64`
           }}
         />
-        <span className="text-sm font-medium truncate w-full text-center">{bookmark.title}</span>
+        <span className="text-sm font-medium truncate w-full text-center min-h-2">{bookmark.title}</span>
       </div>
     </Card>
   )

@@ -13,6 +13,8 @@ import { TodoCard, TodoSettings, defaultTodoConfig } from './todo/TodoWidget'
 import { NotepadCard, NotepadSettings, defaultNotepadConfig } from './notepad/NotepadWidget'
 import { HotsearchCard, HotsearchSettings, defaultHotsearchConfig } from './hotsearch/HotsearchWidget'
 import { MarkdownCard, MarkdownSettings, defaultMarkdownConfig } from './markdown/MarkdownWidget'
+import { JsonFormatCard, JsonFormatSettings, defaultJsonFormatConfig } from './jsonFormat/JsonFormatWidget'
+import { EncodeDecodeCard, EncodeDecodeSettings, defaultEncodeDecodeConfig } from './encode/EncodeDecodeWidget'
 // 右键菜单"按类型扩展"的信息内容注册（副作用：执行各类型 registerContextMenuContent）
 import './contextMenuContent'
 
@@ -90,4 +92,18 @@ registerWidget('markdown', {
   Card: MarkdownCard,
   Settings: MarkdownSettings,
   defaultConfig: defaultMarkdownConfig,
+})
+
+registerWidget('json_format', {
+  label: 'JSON 格式化',
+  Card: JsonFormatCard,
+  Settings: JsonFormatSettings,
+  defaultConfig: defaultJsonFormatConfig,
+})
+
+registerWidget('encode_decode', {
+  label: '编解码工具',
+  Card: EncodeDecodeCard,
+  Settings: EncodeDecodeSettings,
+  defaultConfig: defaultEncodeDecodeConfig,
 })

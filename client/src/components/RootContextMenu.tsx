@@ -1,10 +1,10 @@
 // client/src/components/RootContextMenu.tsx
-// 空白处右键菜单：添加书签 / 添加分类 / 更换壁纸 / 批量编辑 / 设置
+// 空白处右键菜单：添加书签 / 添加分类 / 自动布局 / 更换壁纸 / 批量编辑 / 设置
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { BookmarkPlus, FolderPlus, Image as ImageIcon, RefreshCw, ListChecks, Settings } from 'lucide-react'
+import { BookmarkPlus, FolderPlus, Image as ImageIcon, RefreshCw, ListChecks, LayoutGrid, Settings } from 'lucide-react'
 
-export type RootMenuAction = 'addBookmark' | 'addCategory' | 'wallpaper' | 'batch' | 'settings'
+export type RootMenuAction = 'addBookmark' | 'addCategory' | 'autoLayout' | 'wallpaper' | 'batch' | 'settings'
 
 interface Props {
   open: boolean
@@ -17,6 +17,7 @@ interface Props {
 const ITEMS: { key: RootMenuAction; label: string; icon: typeof Settings; extra?: typeof Settings }[] = [
   { key: 'addBookmark', label: '添加书签', icon: BookmarkPlus },
   { key: 'addCategory', label: '添加分类', icon: FolderPlus },
+  { key: 'autoLayout', label: '自动布局', icon: LayoutGrid },
   { key: 'wallpaper', label: '更换壁纸', icon: ImageIcon, extra: RefreshCw },
   { key: 'batch', label: '批量编辑', icon: ListChecks },
   { key: 'settings', label: '设置', icon: Settings },

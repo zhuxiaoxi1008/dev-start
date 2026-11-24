@@ -6,6 +6,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Settings, Trash2, ExternalLink, Folder } from 'lucide-react'
 import type { Bookmark, Category } from '@/types/userConfig'
+import { WIDGET_SIZE_OPTIONS } from '@/types/widgets'
 import { getWidget } from './registry'
 import { getContextMenuContent } from './contextMenu'
 import { useWidgetActions } from './WidgetActionContext'
@@ -19,10 +20,11 @@ interface Props {
   bookmark: Bookmark | null
   categories?: Category[]
   onMoveToCategory?: (bookmarkId: string, categoryId: string | null) => void
+  onResize?: (bookmark: Bookmark, size: { w: number; h: number }) => void
   onClose: () => void
 }
 
-export function WidgetContextMenu({ open, x, y, bookmark, categories = [], onMoveToCategory, onClose }: Props) {
+export function WidgetContextMenu({ open, x, y, bookmark, categories = [], onMoveToCategory, onResize, onClose }: Props) {
   const actions = useWidgetActions()
   const isMobile = useIsMobile()
   const ref = useRef<HTMLDivElement>(null)
@@ -144,6 +146,31 @@ export function WidgetContextMenu({ open, x, y, bookmark, categories = [], onMov
     </div>
   ) : null
 
+  // 组件尺寸：以 12 列基准布局为单位的宽 × 高
+  const resizeSection = onResize ? (
+    <div className="border-t border-border pt-2 mt-1">
+      <div className="px-2 pb-1.5 text-[11px] text-muted-foreground">调整大小（宽 × 高）</div>
+      <div className="grid grid-cols-3 gap-1.5 px-2">
+        {WIDGET_SIZE_OPTIONS.map(opt => {
+          const active = bookmark.w === opt.w && bookmark.h === opt.h
+          return (
+            <button
+              key={opt.label}
+              className={`h-8 rounded-md border text-xs transition-colors ${
+                active
+                  ? 'bg-primary text-primary-foreground border-transparent'
+                  : 'border-border hover:bg-accent active:bg-accent'
+              }`}
+              onClick={() => { onResize(bookmark, { w: opt.w, h: opt.h }); onClose() }}
+            >
+              {opt.label}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  ) : null
+
   // ── 移动端：底部操作表 ──
   if (isMobile) {
     return createPortal(
@@ -166,6 +193,8 @@ export function WidgetContextMenu({ open, x, y, bookmark, categories = [], onMov
               <Content bookmark={bookmark} type={type} />
             </div>
           )}
+
+          {resizeSection && <div className="px-2 py-1">{resizeSection}</div>}
 
           {moveToCategory && <div className="px-4">{moveToCategory}</div>}
 
@@ -216,6 +245,8 @@ export function WidgetContextMenu({ open, x, y, bookmark, categories = [], onMov
           <Content bookmark={bookmark} type={type} />
         </div>
       )}
+
+      {resizeSection}
 
       {moveToCategory}
 

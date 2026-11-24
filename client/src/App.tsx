@@ -39,6 +39,38 @@ function readCatLayout(): CatLayout {
   try { return JSON.parse(localStorage.getItem(CAT_LAYOUT_KEY) || '{}') as CatLayout } catch { return {} }
 }
 
+// 网格断点/列数：容器最宽约 1120px（max-w-6xl 减去内边距），
+// lg 阈值必须低于该宽度，否则桌面端永远命中 md，12 列基准布局形同虚设
+const GRID_BREAKPOINTS = { lg: 1024, md: 850, sm: 640, xs: 440, xxs: 0 }
+const GRID_COLS = { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }
+// 数据库里保存的永远是 12 列基准布局，其余断点由它压缩生成
+const BASE_COLS = GRID_COLS.lg
+
+// 自动布局：按当前顺序从左到右、从上到下紧凑排列（仅重排，不改尺寸）
+function packLayout(
+  items: Array<{ id: string; w: number; h: number; x: number; y: number }>,
+  cols: number,
+) {
+  const sorted = [...items].sort((a, b) => a.y - b.y || a.x - b.x)
+  const packed = new Map<string, { x: number; y: number; w: number; h: number }>()
+  let x = 0
+  let y = 0
+  let rowH = 0
+  for (const item of sorted) {
+    const w = Math.min(Math.max(1, item.w), cols)
+    const h = Math.max(1, item.h)
+    if (x + w > cols) {
+      y += rowH
+      x = 0
+      rowH = 0
+    }
+    packed.set(item.id, { x, y, w, h })
+    x += w
+    rowH = Math.max(rowH, h)
+  }
+  return packed
+}
+
 function HomePage() {
   const { loading, settings, patchSetting } = useConfig()
   const [keyword, setKeyword] = useState("")
@@ -179,28 +211,47 @@ function HomePage() {
     return [...bookmarkLayouts, ...categoryLayouts]
   }, [bookmarks, categories, catLayout])
 
-  const onLayoutChange = async (currentLayout: Layout) => {
+  // 布局变更：只把 12 列基准布局（lg）写回数据库。
+  // 窄屏布局是 RGL 依据基准布局压缩生成的，如果也回写，会把"窄屏单列布局"
+  // 污染成基准布局，导致窗口从小屏放大回大屏后组件全部纵向堆叠。
+  const onLayoutChange = async (currentLayout: Layout, allLayouts?: Partial<Record<string, Layout>>) => {
+    const baseLayout = allLayouts?.lg ?? (allLayouts ? undefined : currentLayout)
+    if (!baseLayout) return
+
     // 分类框布局只存本地，不写入书签表
     const isCategoryItem = (id: unknown) => String(id).startsWith('cat-')
-    const catItems = currentLayout.filter(l => isCategoryItem(l.i))
-    if (catItems.length > 0) {
-      const next: CatLayout = {}
-      for (const item of catItems) {
-        next[String(item.i).slice(4)] = { x: item.x, y: item.y, w: item.w, h: item.h }
+    const catItems = baseLayout.filter(l => isCategoryItem(l.i))
+    const widgetLayout = baseLayout.filter(l => !isCategoryItem(l.i))
+
+    let catChanged = false
+    const next: CatLayout = {}
+    for (const item of catItems) {
+      const id = String(item.i).slice(4)
+      next[id] = { x: item.x, y: item.y, w: item.w, h: item.h }
+      const saved = catLayout[id]
+      if (!saved || saved.x !== item.x || saved.y !== item.y || saved.w !== item.w || saved.h !== item.h) {
+        catChanged = true
       }
+    }
+    if (catChanged) {
       setCatLayout(next)
       try { localStorage.setItem(CAT_LAYOUT_KEY, JSON.stringify(next)) } catch { /* ignore */ }
     }
 
-    const widgetLayout = currentLayout.filter(l => !isCategoryItem(l.i))
+    let widgetChanged = false
     const updatedBookmarks = bookmarks.map(bm => {
       const layoutItem = widgetLayout.find(l => l.i === bm.id)
-      if (layoutItem) {
-        return { ...bm, x: layoutItem.x, y: layoutItem.y, w: layoutItem.w, h: layoutItem.h }
+      if (!layoutItem) return bm
+      if (layoutItem.x === bm.x && layoutItem.y === bm.y && layoutItem.w === bm.w && layoutItem.h === bm.h) {
+        return bm
       }
-      return bm
+      widgetChanged = true
+      return { ...bm, x: layoutItem.x, y: layoutItem.y, w: layoutItem.w, h: layoutItem.h }
     })
-    setBookmarks(updatedBookmarks)
+    if (widgetChanged) setBookmarks(updatedBookmarks)
+
+    // 窄屏下的拖动/缩放不产生基准布局变化，无需请求后端
+    if (!widgetChanged) return
 
     try {
       await fetch('/api/bookmarks/layout', {
@@ -213,6 +264,66 @@ function HomePage() {
       })
     } catch (err) {
       console.error('保存布局失败', err)
+    }
+  }
+
+  // 右键菜单调整尺寸：以 12 列基准布局为单位更新
+  const resizeWidget = async (bookmark: Bookmark, size: { w: number; h: number }) => {
+    const w = Math.min(Math.max(1, size.w), BASE_COLS)
+    const h = Math.max(1, size.h)
+    const x = Math.max(0, Math.min(bookmark.x, BASE_COLS - w))
+    try {
+      const res = await fetch(`/api/bookmarks/${bookmark.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-User-Id': settings.user_id },
+        body: JSON.stringify({ w, h, x }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({})) as { error?: string }
+        throw new Error(err.error || '调整大小失败')
+      }
+      setBookmarks(prev => prev.map(bm => bm.id === bookmark.id ? { ...bm, w, h, x } : bm))
+    } catch (err) {
+      console.error('调整组件大小失败', err)
+      alert(err instanceof Error ? err.message : '调整组件大小失败')
+    }
+  }
+
+  // 空白处右键「自动布局」：书签与分类框一起紧凑重排
+  const applyAutoLayout = async () => {
+    const items = [
+      ...bookmarks.map(bm => ({ id: bm.id, w: bm.w, h: bm.h, x: bm.x, y: bm.y })),
+      ...categories.map(c => {
+        const saved = catLayout[c.id] ?? { x: 0, y: 0, w: 2, h: 2 }
+        return { id: `cat-${c.id}`, w: saved.w, h: saved.h, x: saved.x, y: saved.y }
+      }),
+    ]
+    const packed = packLayout(items, BASE_COLS)
+
+    const nextBookmarks = bookmarks.map(bm => {
+      const p = packed.get(bm.id)
+      return p ? { ...bm, ...p } : bm
+    })
+    const nextCats: CatLayout = {}
+    for (const c of categories) {
+      const p = packed.get(`cat-${c.id}`)
+      if (p) nextCats[c.id] = p
+    }
+
+    setBookmarks(nextBookmarks)
+    setCatLayout(nextCats)
+    try { localStorage.setItem(CAT_LAYOUT_KEY, JSON.stringify(nextCats)) } catch { /* ignore */ }
+
+    try {
+      const res = await fetch('/api/bookmarks/layout', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'X-User-Id': settings.user_id },
+        body: JSON.stringify(nextBookmarks.map(bm => ({ i: bm.id, x: bm.x, y: bm.y, w: bm.w, h: bm.h }))),
+      })
+      if (!res.ok) throw new Error('保存布局失败')
+    } catch (err) {
+      console.error('自动布局保存失败', err)
+      alert('自动布局已应用，但同步到云端失败')
     }
   }
 
@@ -338,6 +449,7 @@ function HomePage() {
   const handleRootAction = (action: RootMenuAction) => {
     if (action === 'addBookmark') { setBookmarkCategoryId(null); setAddBookmarkOpen(true) }
     else if (action === 'addCategory') { setEditingCategory(null); setAddCategoryOpen(true) }
+    else if (action === 'autoLayout') applyAutoLayout()
     else if (action === 'wallpaper') setSettingOpen(true)
     else if (action === 'batch') setBatchOpen(true)
     else if (action === 'settings') setSettingsOpen(true)
@@ -376,8 +488,8 @@ function HomePage() {
                 <Responsive
                   className="layout"
                   layouts={{ lg: layouts }}
-                  breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
-                  cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
+                  breakpoints={GRID_BREAKPOINTS}
+                  cols={GRID_COLS}
                   rowHeight={80}
                   width={gridWidth}
                   onLayoutChange={onLayoutChange}
@@ -484,6 +596,7 @@ function HomePage() {
           bookmark={menu.bookmark}
           categories={categories}
           onMoveToCategory={moveToCategory}
+          onResize={resizeWidget}
           onClose={() => setMenu(m => ({ ...m, open: false }))}
         />
       </div>

@@ -1,7 +1,7 @@
 // client/src/components/WidgetPicker.tsx
 // Sidebar 加号 -> 小组件选择面板：列出注册表里的全部组件
 import React, { useState } from 'react'
-import { X, Heart, Clock, AlarmClock, CalendarDays, CloudSun, ListTodo, NotebookPen, Flame, Image, FileText } from 'lucide-react'
+import { X, Heart, Clock, AlarmClock, CalendarDays, CloudSun, ListTodo, NotebookPen, Flame, Image, FileText, Braces, Binary } from 'lucide-react'
 import type { WidgetType } from '@/types/widgets'
 import { listWidgets } from '@/widgets/registry'
 import '@/widgets/registerAll'
@@ -17,6 +17,8 @@ const ICONS: Partial<Record<WidgetType, React.ComponentType<{ size?: number; cla
   hotsearch: Flame,
   image_convert: Image,
   markdown: FileText,
+  json_format: Braces,
+  encode_decode: Binary,
 }
 
 const DESCRIPTIONS: Partial<Record<WidgetType, string>> = {
@@ -30,6 +32,8 @@ const DESCRIPTIONS: Partial<Record<WidgetType, string>> = {
   hotsearch: '各平台热榜入口',
   image_convert: 'JPG / PNG / WEBP 互转',
   markdown: '支持 Markdown 语法与实时预览',
+  json_format: '校验、格式化与压缩 JSON',
+  encode_decode: 'Base64 / URL / Unicode 编解码',
 }
 
 interface Props {

@@ -5,7 +5,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import {
   Folder, Link as LinkIcon, X, BookmarkPlus, Pencil, Trash2,
-  Clock, Calendar, CloudRain, ListTodo, StickyNote, Flame, Image, PartyPopper, Hourglass, FileText,
+  Clock, Calendar, CloudRain, ListTodo, StickyNote, Flame, Image, PartyPopper, Hourglass, FileText, Braces, Binary,
 } from 'lucide-react'
 import type { Bookmark, Category } from '@/types/userConfig'
 import { useLongPress } from '@/hooks/useLongPress'
@@ -25,6 +25,8 @@ const WIDGET_ICONS: Record<string, typeof LinkIcon> = {
   hotsearch: Flame,
   image_convert: Image,
   markdown: FileText,
+  json_format: Braces,
+  encode_decode: Binary,
 }
 
 function WidgetTypeIcon({ bookmark, size = 14 }: { bookmark: Bookmark; size?: number }) {

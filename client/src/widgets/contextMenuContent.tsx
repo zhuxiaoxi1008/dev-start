@@ -161,6 +161,20 @@ const ImageConvertContent = () => (
   </>
 )
 
+const JsonFormatContent = () => (
+  <>
+    <InfoRow label="功能">格式化 · 压缩 · 校验</InfoRow>
+    <InfoRow label="处理方式">本地浏览器，不上传</InfoRow>
+  </>
+)
+
+const EncodeDecodeContent = () => (
+  <>
+    <InfoRow label="支持编码">Base64 / URL / HTML / Unicode / Hex</InfoRow>
+    <InfoRow label="处理方式">本地浏览器，不上传</InfoRow>
+  </>
+)
+
 registerContextMenuContent('link', LinkContent)
 registerContextMenuContent('banner', LinkContent)
 registerContextMenuContent('anniversary', AnniversaryContent)
@@ -172,3 +186,5 @@ registerContextMenuContent('todo', TodoContent)
 registerContextMenuContent('notepad', NotepadContent)
 registerContextMenuContent('hotsearch', HotsearchContent)
 registerContextMenuContent('image_convert', ImageConvertContent)
+registerContextMenuContent('json_format', JsonFormatContent)
+registerContextMenuContent('encode_decode', EncodeDecodeContent)

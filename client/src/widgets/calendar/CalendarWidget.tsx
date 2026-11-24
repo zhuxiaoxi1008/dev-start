@@ -43,7 +43,7 @@ export function CalendarCard({ isDragging, onOpen }: WidgetCardProps) {
       className={`relative w-full h-full rounded-xl overflow-hidden bg-white backdrop-blur-xl shadow-sm cursor-pointer select-none flex flex-col items-center justify-center text-card-foreground`}
       onClick={() => { if (!isDragging) onOpen() }}
     >
-      <div className="flex-1 flex items-center justify-center w-full text-xl text-muted-foreground mb-0.5 no-drag bg-red-400 text-white">
+      <div className="flex-1 flex items-center justify-center w-full text-base text-muted-foreground mb-0.5 no-drag bg-red-400 text-white">
         {today.getFullYear()}年{today.getMonth() + 1}月 · 星期{WEEK_CN[today.getDay()]}
       </div>
       <div className="flex-2 flex items-center justify-center text-6xl font-bold leading-none mb-1 no-drag tabular-nums">{today.getDate()}</div>
