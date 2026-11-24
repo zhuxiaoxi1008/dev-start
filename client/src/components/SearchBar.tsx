@@ -112,7 +112,7 @@ export function SearchBar({
         <button
           type="button"
           onClick={onSearch}
-          className="touch-target shrink-0 px-3 sm:px-4 rounded-lg bg-foreground text-background text-sm font-medium active:scale-[0.98] transition-transform inline-flex items-center justify-center"
+          className="touch-target shrink-0 px-3 h-6 sm:px-4 rounded-lg bg-foreground text-background text-sm font-medium active:scale-[0.98] transition-transform inline-flex items-center justify-center"
         >
           <Search className="w-4 h-4 sm:hidden" />
           <span className="hidden sm:inline">搜索</span>
