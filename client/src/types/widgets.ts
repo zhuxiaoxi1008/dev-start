@@ -61,7 +61,7 @@ export const WIDGET_DEFAULT_SIZE: Record<WidgetType, { w: number; h: number }> =
   clock: { w: 2, h: 2 },
   calendar: { w: 2, h: 2 },
   weather: { w: 4, h: 2 },
-  todo: { w: 2, h: 2 },
+  todo: { w: 4, h: 2 },
   notepad: { w: 2, h: 2 },
   hotsearch: { w: 2, h: 4 },
   image_convert: { w: 4, h: 2 },
